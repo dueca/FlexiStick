@@ -1,0 +1,57 @@
+;; -*-scheme-*-
+(Header "
+        from item       : FlexiStickTest.dco
+        date            : 170724
+        category        : comm object specification
+        description     : Test object for FlexiStick writing
+        copyright       : (c) 2017 TUDelft-AE-C&S
+        language        : C++")
+
+;; define different basic types we want to be able to write
+(Type double)
+(Type float)
+(Type int32_t)
+(Type int16_t)
+(Type bool)
+
+;; a set of vector version of these same basic types
+(IterableType doublevec "#include <fixvector.hxx>
+typedef dueca::fixvector<2,double>  doublevec;")
+(IterableType floatvec  "#include <fixvector.hxx>
+typedef dueca::fixvector<2,float>   floatvec;")
+(IterableType intvec    "#include <fixvector.hxx>
+typedef dueca::fixvector<2,int32_t> intvec;")
+(IterableType shortvec  "#include <fixvector.hxx>
+typedef dueca::fixvector<2,int16_t> shortvec;")
+(IterableType boolvec   "#include <fixvector.hxx>
+typedef dueca::fixvector<2,bool>    boolvec;")
+
+;; Test object for flexible writing HID data
+;;
+;; Defines single variables with various basic types and vector variants
+;; of the same
+(Stream FlexiStickTest
+        (Option hdf5)
+        (Option msgpack)
+
+        ;; single double variable
+        (double    vald (Default 0.0))
+        ;; single float variable
+        (float     valf (Default 0.0f))
+        ;; single int variable
+        (int32_t   vali (Default 0))
+        ;; single short int variable
+        (int16_t   vals (Default 0))
+        ;; single bool variable
+        (bool      valb (Default false))
+        ;; vector of two doubles
+        (doublevec vecd (Default 0.0))
+        ;; vector of two floats
+        (floatvec  vecf (Default 0.0f))
+        ;; vector of two ints
+        (intvec    veci (Default 0))
+        ;; vector of two shorts
+        (shortvec  vecs (Default 0))
+        ;; vector of two bools
+        (boolvec   vecb (Default false))
+)

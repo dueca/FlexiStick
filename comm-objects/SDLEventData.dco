@@ -1,0 +1,31 @@
+;; -*-scheme-*-
+(Header "
+        from item       : SDLEventData.dco
+        date            : 220616
+        category        : comm object specification
+        description     : Test object for FlexiStick writing
+        copyright       : (c) 2022 TUDelft-AE-C&S
+        language        : C++")
+
+;; define different basic types we want to be able to write
+(Type uint32_t "#include <inttypes.h>")
+(Type string40
+"#include <stringoptions.h>
+#include <SDL2/SDL.h>")
+
+;; Test object for flexible writing HID data
+;;
+;; Defines single variables with various basic types and vector variants
+;; of the same
+(Stream SDLEventData
+        (Option msgpack)
+        (Option hdf5)
+        (IncludeFile SDLEventDataExtra)
+
+        ;; single double variable
+        (uint32_t type (Default 0))
+        ;; time stamp
+        (uint32_t timestamp (Default 0))
+        ;; rest of the data
+        (string40 data)
+        )

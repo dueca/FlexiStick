@@ -1,0 +1,8 @@
+# this file contains a list of all communicated objects needed by this 
+# specific module
+# specify these with the .dco extension, examples:
+# FlexiStick/comm-objects/MyDataObject.dco
+# Generic/comm-objects/PrimaryControls.dco
+FlexiStick/comm-objects/FlexiStickTest.dco
+FlexiStick/comm-objects/MediumJoystick.dco
+# FlexiStick/comm-objects/SDLEventData.dco

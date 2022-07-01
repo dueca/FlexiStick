@@ -1,0 +1,30 @@
+;; -*-scheme-*-
+(Header "
+        from item       : MediumJoystick.dco
+        date            : 180910
+        category        : comm object specification
+        description     : Commonly used joysticks should fit this, all axes
+        copyright       : (c) 2018 TUDelft-AE-C&S
+        language        : C++")
+
+;; different basic types
+(IterableType MediumJoystick_hatvec4 "#include <inttypes.h>
+#include <fixvector.hxx>
+typedef dueca::fixvector<4,uint16_t> MediumJoystick_hatvec4;")
+(IterableType MediumJoystick_floatvec8 "#include <fixvector.hxx>
+typedef dueca::fixvector<8,float> MediumJoystick_floatvec8;")
+(IterableType MediumJoystick_boolvec12 "#include <fixvector.hxx>
+typedef dueca::fixvector<12,bool> MediumJoystick_boolvec12;")
+
+;; DCO object matching medium-sized joysticks
+(Stream MediumJoystick
+        (Option hdf5)
+        (Option msgpack)
+
+        ;; 6 axes, roll, pitch, yaw, throttle ...
+        (MediumJoystick_floatvec8  axis (Default 0.0f))
+        ;; 12 buttons
+        (MediumJoystick_boolvec12  button (Default false))
+        ;; up to four hats
+        (MediumJoystick_hatvec4   hat (Default 0))
+        )
