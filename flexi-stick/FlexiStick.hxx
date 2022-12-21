@@ -33,6 +33,7 @@ USING_DUECA_NS;
 #include "Counter.hxx"
 #include "PolyConverter.hxx"
 #include "StepsConverter.hxx"
+#include "SegmentsConverter.hxx"
 #include "JoystickDevice.hxx"
 #include "TouchDevice.hxx"
 #include "ChannelAccess.hxx"
@@ -185,6 +186,9 @@ private: // simulation data
   /** Currently being worked on steps converter */
   boost::intrusive_ptr<flexistick::StepsConverter> newsteps;
 
+  /** Currently being worked on segments converter */
+  boost::intrusive_ptr<flexistick::SegmentsConverter> newsegments;
+    
 #ifndef REPORT_ALWAYS_UNCONFIGURED
   /** Unreported hats/axes/buttons */
   typedef std::set<std::pair<uint32_t,uint32_t> > reported_t;
@@ -334,6 +338,12 @@ private:
 
   /** Specify parameters for the counter */
   bool defineSteps(const std::vector<double>& cpar);
+
+  /** Create a stepped conversion */
+  bool createSegments(const std::vector<std::string>& cdef);
+
+  /** Specify parameters for the counter */
+  bool defineSegments(const std::vector<double>& cpar);
 
   /** Create a weighted sum of inputs */
   bool createWeightedSum(const std::vector<std::string>& cdef);
