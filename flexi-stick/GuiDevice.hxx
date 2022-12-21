@@ -2,9 +2,9 @@
 /*      item            : GuiDevice.hxx
         made by         : Rene van Paassen
         date            : 170915
-	category        : header file
+        category        : header file
         description     :
-	changes         : 170915 first version
+        changes         : 170915 first version
         language        : C++
 */
 
@@ -356,7 +356,14 @@ namespace flexistick
     /** With a specific gui file */
     GuiDevice(const std::string& name, SDL_JoystickID which,
               const std::string& fgui =
-              "../../../../FlexiStick/flexi-stick/stickgui.glade");
+#if GTK_CHECK_VERSION(3,0,0)
+              "../../../../FlexiStick/flexi-stick/stickgui.glade"
+#elif GTK_CHECK_VERSION(2,0,0)
+              "../../../../FlexiStick/flexi-stick/stickgui.glade2"
+#else
+#error "No suitable GTK version found"
+#endif
+              );
 
     /** Open the window */
     bool init();

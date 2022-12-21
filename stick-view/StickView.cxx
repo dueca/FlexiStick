@@ -104,7 +104,12 @@ bool StickView::complete()
 
   /* All your parameters have been set. You may do extended
      initialisation here. Return false if something is wrong. */
-  fbwin.readGladeFile("../../../../FlexiStick/stick-view/stickviewgui.glade",
+  fbwin.readGladeFile(
+#if GTK_CHECK_VERSION(3,0,0)
+		      "../../../../FlexiStick/stick-view/stickviewgui.glade",
+#else
+#error "No suitable GTK version found"
+#endif
                       "stick-draw", reinterpret_cast<gpointer>(this), table);
   fbwin.show();
 
