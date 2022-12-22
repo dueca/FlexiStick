@@ -152,6 +152,18 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       "u0, y0, u1, y1 etc. Finds u closest to input value, returns\n"
       "corresponding output value" },
 
+    { "create-segments",
+      new MemberCall<_ThisModule_, std::vector<std::string> >
+      (&_ThisModule_::createSegments),
+      "create a line segments converter. Supply symbolic name and input name" },
+
+    { "segments-params",
+      new MemberCall<_ThisModule_, std::vector<double> >
+      (&_ThisModule_::defineSegments),
+      "provide piecewise continuous segments for calibration, give input,\n"
+      "output pairs u0, y0, u1, y1 etc. Does linear interpolation"
+    },
+
     { "create-weighted",
       new MemberCall<_ThisModule_, std::vector<std::string> >
       (&_ThisModule_::createWeightedSum),
@@ -1276,6 +1288,46 @@ bool FlexiStick::defineSteps(const std::vector<double>& cpar)
   // set coefficients and clear newsteps
   newsteps->defineSteps(cpar);
   newsteps.reset();
+
+  return true;
+}
+
+bool FlexiStick::createSegments(const std::vector<std::string>& cdef)
+{
+  // 2 strings; name, input
+  if (cdef.size() != 2) {
+    E_MOD("Need name for segments, and the input parameter");
+    return false;
+  }
+  if (newsegments.get()) {
+    E_MOD("Previous segments not completed");
+    return false;
+  }
+  newsegments.reset(new SegmentsConverter());
+
+  // this prints name taken or problem finding link
+  if (!linkToSource(cdef[1], newsegments, 0) ||
+      !addToSources(cdef[0], newsegments)) {
+    E_MOD("Cannot create new segments converter");
+    return false;
+  }
+
+  return true;
+}
+
+bool FlexiStick::defineSegments(const std::vector<double>& cpar)
+{
+  if ((cpar.size() < 4) || (cpar.size() % 2 != 0)) {
+    E_MOD("Need two or more pairs for segments");
+    return false;
+  }
+  if (!newsegments.get()) {
+    E_MOD("Segments converter not defined");
+    return false;
+  }
+  // set coefficients and clear newsegments
+  newsegments->defineSegments(cpar);
+  newsegments.reset();
 
   return true;
 }
