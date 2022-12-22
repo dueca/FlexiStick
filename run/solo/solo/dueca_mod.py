@@ -106,8 +106,11 @@ if this_node_id == ecs_node:
             enable_record_replay = True).param(
                 ('add-device', f"tiger:{use_js}"),
                 # values are already coverted to -1 .. 1
-                ('create-poly', ("stickx", "tiger.a[0]")),
-                ('poly-params', (0.0, 1.0)),
+                #('create-poly', ("stickx", "tiger.a[0]")),
+                #('poly-params', (0.0, 1.0)),
+                ('create-segments', ("stickx", "tiger.a[0]")),
+                ('segments-params',
+                 (-1.0, -1.0, -0.2, 0.0, 0.2, 0.0, 1.0, 1.0)),
                 ('create-poly', ("sticky", "tiger.a[1]")),
                 ('poly-params', (0.0, 1.0)),
                 ('create-poly', ("throttle", "tiger.a[2]")),

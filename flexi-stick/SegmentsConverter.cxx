@@ -2,9 +2,9 @@
 /*      item            : SegmentsConverter.cxx
         made by         : Rene' van Paassen
         date            : 170721
-	category        : body file 
-        description     : 
-	changes         : 170721 first version
+        category        : body file
+        description     :
+        changes         : 170721 first version
         language        : C++
 */
 
@@ -30,7 +30,7 @@ public:
 
 
 static void Segments_sort_and_copy(double *ui, double *yi,
-				   double *a, double *y, int n)
+                                   double *a, double *y, int n)
 {
   // creating this with n < 1 is not possible
   if (n < 2) {
@@ -57,7 +57,7 @@ static void Segments_sort_and_copy(double *ui, double *yi,
   for (int ii = n; --ii; ) {
     y[ii] = yi[order[ii]];
     a[ii-1] = (yi[order[ii]] - yi[order[ii-1]]) /
-      (ui[order[ii]] + ui[order[ii-1]]);
+      (ui[order[ii]] - ui[order[ii-1]]);
   }
   y[0] = yi[order[0]];
 }
@@ -133,7 +133,7 @@ DUECA_NS_END
 
 namespace flexistick {
   static double dum[] = {0.0, 1.0};
-  
+
   SegmentsConverter::SegmentsConverter() :
     FlexiLink(),
     converter(2, dum, dum)
@@ -160,17 +160,17 @@ namespace flexistick {
   void SegmentsConverter::propagate(int& v, unsigned idx)
   {
     float value = v;
-    PDEB("Segments int conversion, " << v << " to " << value);    
+    PDEB("Segments int conversion, " << v << " to " << value);
     this->propagate(value, idx);
-  }  
+  }
 
   void SegmentsConverter::propagate(float& v, unsigned idx)
   {
     float value = converter(v);
     PDEB("Segments conversion, " << v << " to " << value);
     for (t_flexilink::iterator ll = receivers.begin();
-	 ll != receivers.end(); ll++) {
+         ll != receivers.end(); ll++) {
       ll->second->propagate(value, ll->first);
     }
-  }  
+  }
 }

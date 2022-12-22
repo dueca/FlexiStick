@@ -15,7 +15,7 @@
 -->
 <machine xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl modules.xsd">
   <project>
-    <url>remote:///FlexiStick.git</url>
+    <url>origin:///FlexiStick.git</url>
     <module>stick-view</module>
     <module>flexi-stick</module>
   </project>
