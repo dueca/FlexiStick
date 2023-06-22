@@ -19,8 +19,13 @@ static const char* classname = "flexistick::ChannelAccess";
 namespace dueca {
   template<> const char* dueca::getclassname<flexistick::ChannelAccess>()
   { return classname; }
-  //  const char* getclassname(const flexistick::ChannelAccess&)
-  //{ return classname; }
+  template<>
+  const char* getclassname<const flexistick::ChannelAccess>()
+  { return classname; }
+  template<>
+  const char* getclassname(const  flexistick::ChannelAccess&)
+  { return classname; }
+  
 }
 
 namespace flexistick {
