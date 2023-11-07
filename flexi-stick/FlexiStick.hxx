@@ -351,6 +351,9 @@ private:
   /** Add a virtual stick based on gtk gui */
   bool addVirtual(const std::vector<std::string>& cdef);
 
+  /** Set the position and size for the added virtual */
+  bool setVirtualPositionSize(const std::vector<int>& ps);
+
   /** Add a slider to the latest virtual stick */
   bool addVirtualSlider(const std::vector<int>& cpar);
 

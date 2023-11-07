@@ -177,6 +177,13 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       "create a virtual stick device. Supply the name of the device\n"
       "and optionally a file name for the gui template" },
 
+    { "virtual-position-size",
+      new MemberCall<_ThisModule_, std::vector<int> >
+      (&_ThisModule_::setVirtualPositionSize),
+      "set the position (x, y) for the virtual stick gui window, and\n"
+      "optionally also the size (w, h). To only set size, specify positions\n"
+      "as -1, -1" },
+
     { "add-virtual-slider",
       new MemberCall<_ThisModule_, std::vector<int> >
       (&_ThisModule_::addVirtualSlider),
@@ -1358,6 +1365,20 @@ bool FlexiStick::addVirtual(const std::vector<std::string>& cdef)
   return true;
 }
 
+bool FlexiStick::setVirtualPositionSize(const std::vector<int>& ps)
+{
+  if (ps.size() != 2 && ps.size() != 4) {
+    E_MOD("Need two (position only) or four (pos+size) arguments for virtual");
+    return false;
+  }
+  if (!gui_device.size()) {
+    E_MOD("First create gui device!");
+    return false;
+  }
+  gui_device.back()->setPositionAndSize(ps);
+  return true;
+}
+
 bool FlexiStick::addVirtualSlider(const std::vector<int>& cpar)
 {
   if (cpar.size() != 5 && cpar.size() != 6) {
@@ -1368,7 +1389,6 @@ bool FlexiStick::addVirtualSlider(const std::vector<int>& cpar)
     E_MOD("First create gui device!");
     return false;
   }
-
 
   new GuiDevice::GuiSlider(cpar[0], cpar[1], cpar[2], cpar[3], cpar[4],
                            gui_device.back().get(),

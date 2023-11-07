@@ -48,6 +48,9 @@ namespace flexistick {
     //
   }
 
+  void GuiDevice::setPositionAndSize(const std::vector<int>& ps)
+  { fbwin.setWindow(ps); }
+
   bool GuiDevice::init() {
 
     static GladeCallbackTable table[] = {

@@ -365,6 +365,9 @@ namespace flexistick
 #endif
               );
 
+    /** Set window position and size */
+    void setPositionAndSize(const std::vector<int>& ps);
+
     /** Open the window */
     bool init();
 
