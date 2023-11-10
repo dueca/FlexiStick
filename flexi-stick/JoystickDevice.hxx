@@ -35,12 +35,18 @@ namespace flexistick
     /** joystick device */
     SDL_Joystick* joystick;
 
+    /** instance ID, used for matching events */
+    SDL_JoystickID instance_id;
+
   public:
     /** Constructor */
     JoystickDevice(SDL_JoystickID dev, const std::string& name);
 
     /** Destructor */
     ~JoystickDevice();
+
+    /** Joystick ID, matches with future incoming events */
+    SDL_JoystickID getJoystickID() override;
   };
 
 }

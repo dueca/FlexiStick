@@ -53,7 +53,9 @@ namespace flexistick {
     // 
   }
 
-  
+  SDL_JoystickID JoystickDevice::getJoystickID()
+  { return instance_id; }
+
 }
 
 
