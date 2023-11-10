@@ -33,6 +33,7 @@ namespace flexistick {
     unsigned nbutton = 1;
 #else
     joystick = SDL_JoystickOpen(dev);
+    instance_id = SDL_JoystickInstanceID(joystick);  
     std::string tname = SDL_JoystickName(joystick);
     SDL_JoystickEventState(SDL_ENABLE);
     unsigned nax = SDL_JoystickNumAxes(joystick);
