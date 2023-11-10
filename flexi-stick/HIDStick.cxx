@@ -26,6 +26,9 @@ namespace flexistick {
     //
   }
 
+  SDL_JoystickID HIDStick::getJoystickID()
+  { return -1; }
+
   void HIDStick::propagate()
   {
 #ifdef PDEBUG

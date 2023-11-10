@@ -61,7 +61,10 @@ namespace flexistick {
     HIDStick(const std::string& name);
 
     /** Destructor */
-    ~HIDStick();
+    virtual ~HIDStick();
+
+    /** For SDL joysticks, device identifier */
+    virtual SDL_JoystickID getJoystickID();
 
     /** Run any collected changes through the conversion system */
     void propagate();

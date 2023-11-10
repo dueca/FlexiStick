@@ -239,6 +239,9 @@ FlexiStick::FlexiStick(Entity* e, const char* part, const
   deltat(Ticker::single()->getDT()),
   need_sdljoystick_init(true),
   need_sdlevent_init(true),
+  sdl_njoy(0),
+  virtual_joyid(-2),
+  sdl_ntouch(0),
 #ifdef WACOMTOUCH
   need_wacomtouch_init(true),
 #endif
@@ -584,7 +587,6 @@ bool FlexiStick::sdlJoyInit()
       return false;
     }
     sdl_njoy = SDL_NumJoysticks();
-    virtual_joyid = sdl_njoy;
     need_sdljoystick_init = false;
   }
   return true;
@@ -708,7 +710,7 @@ bool FlexiStick::addDevice(const std::string& idev)
   if (dev == 0) {
     W_MOD("Simulated joystick device 0");
     boost::intrusive_ptr<HIDStick> jdev(new JoystickDevice(dev, name));
-    devices[dev] = jdev;
+    devices[jdev->getJoystickID()] = jdev;
     return true;
   }
 #endif
@@ -727,9 +729,9 @@ bool FlexiStick::addDevice(const std::string& idev)
 
   boost::intrusive_ptr<HIDStick> jdev(new JoystickDevice(dev, name));
 
-  PDEB("SDL joystick, name " << name << " dev " << dev);
+  I_MOD("SDL joystick, name " << name << " dev " << dev << " jid " << jdev->getJoystickID());
 
-  devices[dev] = jdev;
+  devices[jdev->getJoystickID()] = jdev;
   return true;
 }
 
@@ -1362,6 +1364,7 @@ bool FlexiStick::addVirtual(const std::vector<std::string>& cdef)
     boost::intrusive_ptr<flexistick::HIDStick>(newdev);
   gui_device.push_back(newdev);
   I_MOD("New virtual stick " << cdef[0] << " no " << virtual_joyid);
+  virtual_joyid--;
   return true;
 }
 
