@@ -10,9 +10,27 @@ include(DuecaAddDCO)
 include(DuecaAddModule)
 include(FindPkgConfig)
 
+# gui only if component added
+if ("gtk3" IN_LIST DUECA_COMPONENTS OR
+    "gtk2" IN_LIST DUECA_COMPONENTS)
+  set(GUISOURCES GuiDevice.cxx GuiDevice.hxx)
+endif()
+
 # all local sources, replace by set(SOURCES ...) to be selective
-file(GLOB SOURCES "*.cxx" "*.hxx")
-# set(SOURCES ...)
+set(SOURCES
+
+  ChannelAccess.cxx JoystickDevice.cxx TouchDevice.cxx Counter.cxx
+  HIDBase.cxx PolyConverter.cxx WacomTouch.cxx FlexiLink.cxx
+  HIDStick.cxx SegmentsConverter.cxx WeightedSum.cxx FlexiStick.cxx
+  HIDTouch.cxx StepsConverter.cxx ChannelAccess.hxx
+
+  JoystickDevice.hxx TouchDevice.hxx Counter.hxx HIDBase.hxx
+  PolyConverter.hxx WacomTouch.hxx FlexiLink.hxx HIDStick.hxx
+  SegmentsConverter.hxx WeightedSum.hxx FlexiStick.hxx HIDTouch.hxx
+  StepsConverter.hxx
+
+  ${GUISOURCES}
+)
 
 # DCO communication objects used by this module, generated from the
 # comm-objects.lst file

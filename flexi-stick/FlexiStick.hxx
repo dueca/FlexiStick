@@ -37,7 +37,10 @@ USING_DUECA_NS;
 #include "JoystickDevice.hxx"
 #include "TouchDevice.hxx"
 #include "ChannelAccess.hxx"
+#if defined(DUECA_CONFIG_GTK3) || defined(DUECA_CONFIG_GTK2)
 #include "GuiDevice.hxx"
+#define GUI_DEVICE
+#endif
 #include "HIDStick.hxx"
 #include "HIDTouch.hxx"
 
@@ -154,6 +157,7 @@ private: // simulation data
     HIDTouchDeviceType
   };
 
+#ifdef GUI_DEVICE
   /** Gui device */
   typedef std::list<boost::intrusive_ptr<flexistick::GuiDevice> > t_gui_device;
 
@@ -162,6 +166,7 @@ private: // simulation data
 
   /** Iterator for inserting virtual events */
   t_gui_device::iterator gui_current;
+#endif
 
   /** Channel access and data collection type */
   typedef std::map<std::string,boost::intrusive_ptr<flexistick::ChannelAccess> >
@@ -188,7 +193,7 @@ private: // simulation data
 
   /** Currently being worked on segments converter */
   boost::intrusive_ptr<flexistick::SegmentsConverter> newsegments;
-    
+
 #ifndef REPORT_ALWAYS_UNCONFIGURED
   /** Unreported hats/axes/buttons */
   typedef std::set<std::pair<uint32_t,uint32_t> > reported_t;
@@ -348,6 +353,7 @@ private:
   /** Create a weighted sum of inputs */
   bool createWeightedSum(const std::vector<std::string>& cdef);
 
+#ifdef GUI_DEVICE
   /** Add a virtual stick based on gtk gui */
   bool addVirtual(const std::vector<std::string>& cdef);
 
@@ -365,6 +371,7 @@ private:
 
   /** Add a hat to the latest virtual stick */
   bool addVirtualHat(const std::vector<int>& cpar);
+#endif
 
 private:
   /** Helper to find a source */

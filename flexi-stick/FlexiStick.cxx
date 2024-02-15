@@ -171,6 +171,7 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       "specify one or more inputs. Optionally supply a gain factor with\n"
       "the input, like \"1.2*val1\"" },
 
+#ifdef GUI_DEVICE
     { "add-virtual",
       new MemberCall<_ThisModule_, std::vector<std::string> >
       (&_ThisModule_::addVirtual),
@@ -209,6 +210,7 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       (&_ThisModule_::addVirtualHat),
       "add a virtual button. Supply x0, y0 for hat center, and r for the\n"
       "hat radius, optionally add '1' to obtain sticky behaviour" },
+#endif
 
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
@@ -264,12 +266,15 @@ FlexiStick::FlexiStick(Entity* e, const char* part, const
 bool FlexiStick::complete()
 {
   bool res = true;
+
   /* All your parameters have been set. You may do extended
      initialisation here. Return false if something is wrong. */
+#ifdef GUI_DEVICE
   for (t_gui_device::iterator ii = gui_device.begin();
        ii != gui_device.end(); ii++) {
     res  = res && (*ii)->init();
   }
+#endif
 
 #ifdef WACOMTOUCH
   if (wcandidates.size()) {
@@ -400,6 +405,8 @@ inline bool FlexiStick::_SDL_PollEvent(SDL_Event* ev, const DataTimeSpec& ts)
     return false;
   }
 #else
+
+#ifdef GUI_DEVICE
   // first get events from all gui's emulating joystick buttons, hats and axes
   while (gui_current != gui_device.end()) {
     if ( (*gui_current)->pollEvent(ev) ) {
@@ -409,6 +416,7 @@ inline bool FlexiStick::_SDL_PollEvent(SDL_Event* ev, const DataTimeSpec& ts)
       gui_current++;
     }
   }
+#endif
 
   return SDL_PollEvent(ev);
 #endif
@@ -465,9 +473,10 @@ void FlexiStick::doCalculation(const TimeSpec& ts)
   SimulationState state = getAndCheckState(ts);
   DataTimeSpec tspoint(ts.getValidityStart(), ts.getValidityStart());
 
+#ifdef GUI_DEVICE
   // set gui device iterator to start
   gui_current = gui_device.begin();
-
+#endif
   // process all incoming events, and push these into the list with
   SDL_Event event;
   while (_SDL_PollEvent(&event, tspoint)) {
@@ -1341,6 +1350,7 @@ bool FlexiStick::defineSegments(const std::vector<double>& cpar)
   return true;
 }
 
+#ifdef GUI_DEVICE
 bool FlexiStick::addVirtual(const std::vector<std::string>& cdef)
 {
   if (cdef.size() != 1 && cdef.size() != 2) {
@@ -1453,6 +1463,7 @@ bool FlexiStick::addVirtualHat(const std::vector<int>& cpar)
 
   return true;
 }
+#endif
 
 // Make a TypeCreator object for this module, the TypeCreator
 // will check in with the script code, and enable the
