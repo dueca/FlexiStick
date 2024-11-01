@@ -26,6 +26,7 @@ namespace flexistick {
     minval(0),
     defval(0),
     maxval(0),
+    wrap(false),
     value(0),
     cup(false),
     cdown(false)
@@ -38,11 +39,12 @@ namespace flexistick {
     //
   }
 
-  void Counter::defineCounter(int cmin, int cmax, int ccenter)
+  void Counter::defineCounter(int cmin, int cmax, int ccenter, bool cwrap)
   {
     minval = cmin;
     maxval = cmax;
     defval = ccenter;
+    wrap = cwrap;
     value = defval;
   }
 
@@ -53,14 +55,20 @@ namespace flexistick {
     switch(idx) {
     case 0:
       if (v && !cdown) {
-        value = std::max(minval, value - 1);
+        value--;
+        if (value < minval) {
+          value = wrap ? maxval : minval;
+        }
         changed = true;
       }
       cdown = v;
       break;
     case 1:
       if (v && !cup) {
-        value = std::min(maxval, value + 1);
+        value++;
+        if (value > maxval) {
+          value = wrap ? minval : maxval;
+        }
         changed = true;
       }
       cup = v;

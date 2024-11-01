@@ -127,7 +127,7 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       new MemberCall<_ThisModule_, std::vector<int> >
       (&_ThisModule_::defineCounter),
       "Specification of counter, [minimum count], maximum count,\n"
-      "[center value]" },
+      "[start/center value], [wrapping (0=no, 1=yes)]" },
 
     { "create-poly",
       new MemberCall<_ThisModule_, std::vector<std::string> >
@@ -1144,8 +1144,8 @@ bool FlexiStick::addToSources(const std::string name,
 
 bool FlexiStick::createCounter(const std::vector<std::string>& cdef)
 {
-  if (cdef.size() != 3 && cdef.size() != 4) {
-    E_MOD("Need name for counter, and at least 2 inputs");
+  if (cdef.size() != 2 && cdef.size() != 3 && cdef.size() != 4) {
+    E_MOD("Need name for counter, and at least 1 input, two when no wrap");
     return false;
   }
 
@@ -1155,7 +1155,7 @@ bool FlexiStick::createCounter(const std::vector<std::string>& cdef)
   // link to its up and down input, possibly to centering, and add
   // to the list of sources
   if (!linkToSource(cdef[1], newcount, 0) ||
-      !linkToSource(cdef[2], newcount, 1) ||
+      (cdef.size() >= 3 && !linkToSource(cdef[2], newcount, 1)) ||
       (cdef.size() == 4 && !linkToSource(cdef[3], newcount, 2)) ||
       !addToSources(cdef[0], newcount)) return false;
 
@@ -1164,13 +1164,14 @@ bool FlexiStick::createCounter(const std::vector<std::string>& cdef)
 
 bool FlexiStick::defineCounter(const std::vector<int>& cpar)
 {
-  if (cpar.size() > 3 || cpar.size() < 1) {
-    E_MOD("Need 1 to 3 values for counter");
+  if (cpar.size() > 4 || cpar.size() < 1) {
+    E_MOD("Need 1 to 4 values for counter");
     return false;
   }
   int cmin = (cpar.size() > 1) ? cpar[0] : 0;
   int cmax = (cpar.size() == 1) ? cpar[0] : cpar[1];
-  int ccenter = (cpar.size() == 3) ? cpar[2] : (cmin + cmax) / 2;
+  int ccenter = (cpar.size() >= 3) ? cpar[2] : (cmin + cmax) / 2;
+  bool wrap = (cpar.size() == 4) ? bool(cpar[3]) : false;
 
   if (cmin >= cmax || ccenter > cmax || ccenter < cmin) {
     E_MOD("Incorrect parameters for counter");
@@ -1178,7 +1179,7 @@ bool FlexiStick::defineCounter(const std::vector<int>& cpar)
   }
 
   // set params and clear newcount
-  newcount->defineCounter(cmin, cmax, ccenter);
+  newcount->defineCounter(cmin, cmax, ccenter, wrap);
   newcount.reset();
 
   return true;
