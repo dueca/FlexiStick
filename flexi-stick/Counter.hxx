@@ -27,6 +27,9 @@ namespace flexistick
     /** Maximum value */
     int maxval;
 
+    /** Wrap-around */
+    bool wrap;
+
     /** Current value (state) */
     int value;
 
@@ -41,7 +44,7 @@ namespace flexistick
     Counter();
 
     /** set values */
-    void defineCounter(int cmin, int cmax, int ccenter);
+    void defineCounter(int cmin, int cmax, int ccenter, bool cwrap);
 
     /** Destructor */
     ~Counter();
