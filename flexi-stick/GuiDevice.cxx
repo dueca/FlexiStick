@@ -35,6 +35,11 @@ GuiDevice::GuiValueGroup::GuiValueGroup(GuiDevice *master) :
 
 GuiDevice::GuiValueGroup::~GuiValueGroup() {}
 
+bool GuiDevice::GuiValueGroup::keyevent(guint keyval, bool press)
+{
+  return false;
+}
+
 GuiDevice::GuiDevice(const std::string &name, SDL_JoystickID which,
                      const std::string &gfile) :
   HIDStick(name),
@@ -98,22 +103,24 @@ bool GuiDevice::init()
     GTK_EVENT_CONTROLLER(clickcontroller), GTK_PHASE_TARGET);
   gtk_widget_add_controller(fbwin["drawing"],
                             GTK_EVENT_CONTROLLER(clickcontroller));
-  g_signal_connect(G_OBJECT(clickcontroller), "pressed",
-                   G_CALLBACK(+[](GtkGestureClick *gesture, gint n_press,
-                                  gdouble x, gdouble y, gpointer av) {
-                     auto button =
-                       gtk_gesture_single_get_current_button(gesture);
-                     reinterpret_cast<GuiDevice *>(av)->cbClick(button, x, y);
-                   }),
-                   this);
-  g_signal_connect(G_OBJECT(clickcontroller), "released",
-                   G_CALLBACK(+[](GtkGestureClick *gesture, gint n_press,
-                                  gdouble x, gdouble y, gpointer av) {
-                     auto button =
-                       gtk_gesture_single_get_current_button(gesture);
-                     reinterpret_cast<GuiDevice *>(av)->cbRelease(button, x, y);
-                   }),
-                   this);
+  g_signal_connect(
+    G_OBJECT(clickcontroller), "pressed",
+    G_CALLBACK(+[](GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
+                   gpointer av) {
+      auto button =
+        gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(gesture));
+      reinterpret_cast<GuiDevice *>(av)->buttonevent(button, false, x, y);
+    }),
+    this);
+  g_signal_connect(
+    G_OBJECT(clickcontroller), "released",
+    G_CALLBACK(+[](GtkGestureClick *gesture, gint n_press, gdouble x, gdouble y,
+                   gpointer av) {
+      auto button =
+        gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(gesture));
+      reinterpret_cast<GuiDevice *>(av)->buttonevent(button, false, x, y);
+    }),
+    this);
 
     // motion events too
   auto motioncontroller = gtk_event_controller_motion_new();
@@ -121,18 +128,18 @@ bool GuiDevice::init()
     GTK_EVENT_CONTROLLER(motioncontroller), GTK_PHASE_TARGET);
   gtk_widget_add_controller(fbwin["drawing"],
                             GTK_EVENT_CONTROLLER(motioncontroller));
-  g_signal_connect(
-    motioncontroller, "motion",
-    +[](GtkEventControllerMotion *self, gdouble x, gdouble y, gpointer av) {
-      reinterpret_cast<GuiDevice *>(av)->cbMotion(x, y);
-    },
-    this);
-  g_signal_connect(
-    motioncontroller, "leave",
-    +[](GtkEventControllerMotion *self, gdouble x, gdouble y, gpointer av) {
-      reinterpret_cast<GuiDevice *>(av)->cbLeave();
-    },
-    this);
+  g_signal_connect(motioncontroller, "motion",
+                   G_CALLBACK(+[](GtkEventControllerMotion *self, gdouble x,
+                                  gdouble y, gpointer av) {
+                     reinterpret_cast<GuiDevice *>(av)->motionevent(x, y);
+                   }),
+                   this);
+  g_signal_connect(motioncontroller, "leave",
+                   G_CALLBACK(+[](GtkEventControllerMotion *self, gdouble x,
+                                  gdouble y, gpointer av) {
+                     reinterpret_cast<GuiDevice *>(av)->leaveevent();
+                   }),
+                   this);
 #endif
 
   return true;
@@ -190,8 +197,8 @@ gboolean GuiDevice::draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 
   gtk_render_background(context, cr, 0, 0, width, height);
     /* gtk_style_context_get_color (context,
-                             gtk_style_context_get_state (context),
-                             &color); */
+                       gtk_style_context_get_state (context),
+                       &color); */
 
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     (*gg)->draw(widget, cr, data);
@@ -279,7 +286,7 @@ bool GuiDevice::GuiButton::passChange()
   }
 #endif
 
-bool GuiDevice::GuiButton::buttonevent(int button, bool press, gdouble x,
+bool GuiDevice::GuiButton::buttonevent(guint button, bool press, gdouble x,
                                        gdouble y)
 {
   double rx = x - center[0];
@@ -312,7 +319,7 @@ bool GuiDevice::GuiButton::buttonevent(int button, bool press, gdouble x,
   return passChange();
 }
 
-void GuiDevice::GuiButton::motionevent(gdouble x, gdouble y)
+bool GuiDevice::GuiButton::motionevent(gdouble x, gdouble y)
 {
   if (state == Momentary) {
     double rx = x - center[0];
@@ -395,25 +402,24 @@ void GuiDevice::GuiSlider::draw(cairo_t *cr, int width, int height)
             radius, -M_PI, M_PI);
   cairo_fill(cr);
   cairo_restore(cr);
-  return FALSE;
 }
 
-void GuiDevice::GuiSlider::buttonevent(guint button, bool press, gdouble x,
+bool GuiDevice::GuiSlider::buttonevent(guint button, bool press, gdouble x,
                                        gdouble y)
 {
   if (button == 1 || button == 2) {
     if (press) {
-      if (fabs(xnorm[0] * event->x + xnorm[1] * event->y + xnorm[2]) < 1.0) {
-        double v = xunit[0] * event->x + xunit[1] * event->y + xunit[2];
+      if (fabs(xnorm[0] * x + xnorm[1] * y + xnorm[2]) < 1.0) {
+        double v = xunit[0] * x + xunit[1] * y + xunit[2];
         if (fabs(v) <= ratio) {
           grabbed = true;
           value = std::max(-1.0, std::min(v, 1.0));
         }
       }
     }
-    else if (grabbed && event->type == GDK_BUTTON_RELEASE) {
+    else if (grabbed && !press) {
       grabbed = false;
-      if (!sticky && event->button == 1) {
+      if (!sticky && button == 1) {
         value = 0.0;
       }
     }
@@ -421,16 +427,16 @@ void GuiDevice::GuiSlider::buttonevent(guint button, bool press, gdouble x,
   return passChange();
 }
 
-bool GuiDevice::GuiSlider::motionevent(GdkEventMotion *event)
+bool GuiDevice::GuiSlider::motionevent(gdouble x, gdouble y)
 {
   if (grabbed) {
-    double v = xunit[0] * event->x + xunit[1] * event->y + xunit[2];
+    double v = xunit[0] * x + xunit[1] * y + xunit[2];
     value = std::max(-1.0, std::min(v, 1.0));
   }
   return passChange();
 }
 
-bool GuiDevice::GuiSlider::leaveevent(GdkEventCrossing *event)
+bool GuiDevice::GuiSlider::leaveevent()
 {
   if (grabbed) {
     grabbed = false;
@@ -501,8 +507,7 @@ bool GuiDevice::GuiSlider2D::passChange()
   return true;
 }
 
-gboolean GuiDevice::GuiSlider2D::draw(GtkWidget *widget, cairo_t *cr,
-                                      gpointer data)
+void GuiDevice::GuiSlider2D::draw(cairo_t *cr, int width, int height)
 {
   PDEB("slider 2D redraw, val " << valuex << "," << valuey << " "
                                 << xstart.transpose() << "->"
@@ -520,25 +525,24 @@ gboolean GuiDevice::GuiSlider2D::draw(GtkWidget *widget, cairo_t *cr,
             radius, -M_PI, M_PI);
   cairo_fill(cr);
   cairo_restore(cr);
-  return FALSE;
 }
 
 bool GuiDevice::GuiSlider2D::buttonevent(guint button, bool press, gdouble x,
                                          gdouble y)
 {
-  if (event->button == 1 || event->button == 2) {
-    if (event->type == GDK_BUTTON_PRESS) {
-      double vx = xunit[0] * event->x + xunit[1] * event->y + xunit[2];
-      double vy = yunit[0] * event->x + yunit[1] * event->y + yunit[2];
+  if (button == 1 || button == 2) {
+    if (press) {
+      double vx = xunit[0] * x + xunit[1] * y + xunit[2];
+      double vy = yunit[0] * x + yunit[1] * y + yunit[2];
       if (fabs(vx) <= 1.0 && fabs(vy) <= 1.0) {
         grabbed = true;
         valuex = vx;
         valuey = vy;
       }
     }
-    else if (grabbed && event->type == GDK_BUTTON_RELEASE) {
+    else if (grabbed && !press) {
       grabbed = false;
-      if (!sticky && event->button == 1) {
+      if (!sticky && button == 1) {
         valuex = 0.0;
         valuey = 0.0;
       }
@@ -547,18 +551,18 @@ bool GuiDevice::GuiSlider2D::buttonevent(guint button, bool press, gdouble x,
   return passChange();
 }
 
-bool GuiDevice::GuiSlider2D::motionevent(GdkEventMotion *event)
+bool GuiDevice::GuiSlider2D::motionevent(gdouble x, gdouble y)
 {
   if (grabbed) {
-    double vx = xunit[0] * event->x + xunit[1] * event->y + xunit[2];
-    double vy = yunit[0] * event->x + yunit[1] * event->y + yunit[2];
+    double vx = xunit[0] * x + xunit[1] * y + xunit[2];
+    double vy = yunit[0] * x + yunit[1] * y + yunit[2];
     valuex = std::max(-1.0, std::min(vx, 1.0));
     valuey = std::max(-1.0, std::min(vy, 1.0));
   }
   return passChange();
 }
 
-bool GuiDevice::GuiSlider2D::leaveevent(GdkEventCrossing *event)
+bool GuiDevice::GuiSlider2D::leaveevent()
 {
   if (grabbed) {
     grabbed = false;
@@ -596,7 +600,7 @@ uint8_t GuiDevice::GuiHat::idxvalue[8] = {
   SDL_HAT_RIGHTUP,  SDL_HAT_RIGHT,  SDL_HAT_RIGHTDOWN
 };
 
-gboolean GuiDevice::GuiHat::draw(GtkWidget *widget, cairo_t *cr, gpointer data)
+void GuiDevice::GuiHat::draw(cairo_t *cr, int width, int height)
 {
   cairo_save(cr);
   cairo_translate(cr, xcenter[0], xcenter[1]);
@@ -614,7 +618,6 @@ gboolean GuiDevice::GuiHat::draw(GtkWidget *widget, cairo_t *cr, gpointer data)
     }
     cairo_restore(cr);
   }
-  return FALSE;
 }
 
 void GuiDevice::GuiHat::adjust(double d2, double rx, double ry)
@@ -655,24 +658,24 @@ bool GuiDevice::GuiHat::passChange()
 bool GuiDevice::GuiHat::buttonevent(guint button, bool press, gdouble x,
                                     gdouble y)
 {
-  double rx = event->x - xcenter[0];
-  double ry = event->y - xcenter[0];
+  double rx = x - xcenter[0];
+  double ry = y - xcenter[0];
   double d2 = rx * rx + ry * ry;
   if (d2 > radius * radius)
     return false;
 
-  bool button1 = !sticky && event->button == 1;
-  bool button2 = event->button == 2 || (sticky && event->button == 1);
+  bool button1 = !sticky && button == 1;
+  bool button2 = button == 2 || (sticky && button == 1);
 
-  if (button1 && event->type == GDK_BUTTON_PRESS) {
+  if (button1 && press) {
     state = Momentary;
     adjust(d2, rx, ry);
   }
-  else if (button1 && event->type == GDK_BUTTON_RELEASE) {
+  else if (button1 && !press) {
     state = NoInput;
     value = SDL_HAT_CENTERED;
   }
-  else if (button2 && event->type == GDK_BUTTON_RELEASE) {
+  else if (button2 && !press) {
     if (state == ToggleOn) {
       state = NoInput;
       value = SDL_HAT_CENTERED;
@@ -685,11 +688,11 @@ bool GuiDevice::GuiHat::buttonevent(guint button, bool press, gdouble x,
   return passChange();
 }
 
-bool GuiDevice::GuiHat::motionevent(GdkEventMotion *event)
+bool GuiDevice::GuiHat::motionevent(gdouble x, gdouble y)
 {
   if (state == Momentary) {
-    double rx = event->x - xcenter[0];
-    double ry = event->y - xcenter[0];
+    double rx = x - xcenter[0];
+    double ry = y - xcenter[0];
     double d2 = rx * rx + ry * ry;
     if (d2 > radius * radius) {
       state = NoInput;
@@ -699,7 +702,7 @@ bool GuiDevice::GuiHat::motionevent(GdkEventMotion *event)
   return passChange();
 }
 
-bool GuiDevice::GuiHat::leaveevent(GdkEventCrossing *event)
+bool GuiDevice::GuiHat::leaveevent()
 {
   if (state == Momentary) {
     state = NoInput;
@@ -734,9 +737,57 @@ Uint8 GuiDevice::declareButton(boost::intrusive_ptr<GuiValueGroup> g)
   return Uint8(buttons.size() - 1);
 }
 
+#if GTK_CHECK_VERSION(4, 0, 0)
+
+void GuiDevice::buttonevent(guint button, bool press, gdouble x, gdouble y)
+{
+  bool redraw = false;
+  for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
+    redraw |= (*gg)->buttonevent(button, press, x, y);
+  }
+  if (redraw) {
+    gtk_widget_queue_draw(fbwin["drawing"]);
+  }
+}
+
+void GuiDevice::motionevent(gdouble x, gdouble y)
+{
+  bool redraw = false;
+  for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
+    redraw |= (*gg)->motionevent(x, y);
+  }
+  if (redraw) {
+    gtk_widget_queue_draw(fbwin["drawing"]);
+  }
+}
+
+void GuiDevice::leaveevent()
+{
+  bool redraw = false;
+  for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
+    redraw |= (*gg)->leaveevent();
+  }
+  if (redraw) {
+    gtk_widget_queue_draw(fbwin["drawing"]);
+  }
+}
+
+void GuiDevice::keyevent(guint keyval, bool press)
+{
+  bool redraw = false;
+  for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
+    redraw |= (*gg)->keyevent(keyval, press);
+  }
+  if (redraw) {
+    gtk_widget_queue_draw(fbwin["drawing"]);
+  }
+}
+
+#else
 gboolean GuiDevice::buttonevent(GtkWidget *widget, GdkEventButton *event,
                                 gpointer data)
 {
+  bool redraw = false;
   if ((event->type == GDK_BUTTON_RELEASE || event->type == GDK_BUTTON_PRESS) &&
       (event->button == 1 || event->button == 2)) {
 
@@ -745,11 +796,13 @@ gboolean GuiDevice::buttonevent(GtkWidget *widget, GdkEventButton *event,
       // off again on release or leaving zone
     for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end();
          gg++) {
-      (*gg)->buttonevent(
+      redraw |= (*gg)->buttonevent(
         event->button, event->type == GDK_BUTTON_PRESS, event->x, event->y);
     }
   }
-  gtk_widget_queue_draw(widget);
+  if (redraw) {
+    gtk_widget_queue_draw(widget);
+  }
   return FALSE;
 }
 
@@ -758,7 +811,8 @@ gboolean GuiDevice::keyevent(GtkWidget *widget, GdkEventKey *event,
 {
   bool redraw = false;
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
-    redraw |= (*gg)->keyevent(event->keyval, event->keycode, );
+    redraw |=
+      (*gg)->keyevent(event->keyval, event->keycode, event->x, event->y);
   }
   if (redraw) {
     gtk_widget_queue_draw(widget);
@@ -771,11 +825,13 @@ gboolean GuiDevice::motionevent(GtkWidget *widget, GdkEventMotion *event,
 {
   bool redraw = false;
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
-    redraw |= (*gg)->motionevent(event);
+    redraw |= (*gg)->motionevent(event->x, event->y);
   }
   if (redraw) {
     gtk_widget_queue_draw(widget);
   }
   return FALSE;
 }
+
+#endif
 } // namespace flexistick

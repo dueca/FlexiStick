@@ -26,7 +26,8 @@
 namespace flexistick {
 
 /** Simulation of joystick input */
-class GuiDevice : public HIDStick {
+class GuiDevice : public HIDStick
+{
   /** canvas for control */
   dueca::GtkGladeWindow fbwin;
 
@@ -44,7 +45,8 @@ class GuiDevice : public HIDStick {
 
 public:
   /** control equivalent to 1 or 2 axis joystick part, hat or button */
-  struct GuiValueGroup {
+  struct GuiValueGroup
+  {
 
     /** refcounter */
     unsigned intrusive_refcount;
@@ -53,15 +55,15 @@ public:
     GuiDevice *master;
 
     /** redraw the control and value */
-    virtual void draw(cairo_t *cr, int width, int height);
+    virtual void draw(cairo_t *cr, int width, int height) = 0;
 
-    virtual void keyevent(guint keyval, bool press);
+    virtual bool keyevent(guint keyval, bool press);
 
-    virtual void motionevent(gdouble x, gdouble y);
+    virtual bool motionevent(gdouble x, gdouble y) = 0;
 
-    virtual void leaveevent();
+    virtual bool leaveevent() = 0;
 
-    virtual void buttonevent(guint button, bool press, gdouble x, gdouble y);
+    virtual bool buttonevent(guint button, bool press, gdouble x, gdouble y) = 0;
 
     /** Default constructor, initialize refcount */
     GuiValueGroup(GuiDevice *master);
@@ -83,7 +85,8 @@ public:
 
      when 'sticky', left click behaves as middle click
   */
-  struct GuiButton : public GuiValueGroup {
+  struct GuiButton : public GuiValueGroup
+  {
 
     /** propagation of value */
     SDL_JoyButtonEvent event;
@@ -120,7 +123,7 @@ public:
     void draw(cairo_t *cr, int width, int height) final;
 
     /** react to button press or release */
-    void buttonevent(guint button, bool press, gdouble x, gdouble y) final;
+    bool buttonevent(guint button, bool press, gdouble x, gdouble y) final;
 
 #if 0
       /** switch on with button press */
@@ -128,10 +131,10 @@ public:
 #endif
 
     /** react to a mouse motion event */
-    void motionevent(gdouble x, gdouble y) final;
+    bool motionevent(gdouble x, gdouble y) final;
 
     /** react to a window leave, default is to do nothing */
-    void leaveevent() final;
+    bool leaveevent() final;
   };
 
   /** single dimension slider
@@ -146,7 +149,8 @@ public:
 
      when 'sticky', left click behaves as middle click
 */
-  struct GuiSlider : public GuiValueGroup {
+  struct GuiSlider : public GuiValueGroup
+  {
 
     /** propagation of value */
     SDL_JoyAxisEvent event;
@@ -190,13 +194,13 @@ public:
     void draw(cairo_t *cr, int width, int height) final;
 
     /** react to button press or release */
-    void buttonevent(guint button, bool press, gdouble x, gdouble y) final;
+    bool buttonevent(guint button, bool press, gdouble x, gdouble y) final;
 
     /** react to a mouse motion event */
-    void motionevent(gdouble x, gdouble y) final;
+    bool motionevent(gdouble x, gdouble y) final;
 
     /** react to a window leave, default is to do nothing */
-    void leaveevent() final;
+    bool leaveevent() final;
   };
 
   /** double dimension slider
@@ -211,7 +215,8 @@ public:
 
      when 'sticky', left click behaves as middle click
   */
-  struct GuiSlider2D : public GuiValueGroup {
+  struct GuiSlider2D : public GuiValueGroup
+  {
 
     /** propagation of value 1 */
     SDL_JoyAxisEvent eventx;
@@ -259,13 +264,13 @@ public:
     void draw(cairo_t *cr, int width, int height) final;
 
     /** react to button press or release */
-    void buttonevent(guint button, bool press, gdouble x, gdouble y) final;
+    bool buttonevent(guint button, bool press, gdouble x, gdouble y) final;
 
     /** react to a mouse motion event */
-    void motionevent(gdouble x, gdouble y) final;
+    bool motionevent(gdouble x, gdouble y) final;
 
     /** react to a window leave, default is to do nothing */
-    void leaveevent() final;
+    bool leaveevent() final;
   };
 
   /** momentary press hat
@@ -280,7 +285,8 @@ public:
 
      when 'sticky', left click behaves as middle click
   */
-  struct GuiHat : public GuiValueGroup {
+  struct GuiHat : public GuiValueGroup
+  {
 
     /** Upwards propagation of value */
     SDL_JoyHatEvent event;
@@ -320,13 +326,13 @@ public:
     void draw(cairo_t *cr, int width, int height) final;
 
     /** react to button press or release */
-    void buttonevent(guint button, bool press, gdouble x, gdouble y) final;
+    bool buttonevent(guint button, bool press, gdouble x, gdouble y) final;
 
     /** react to a mouse motion event */
-    void motionevent(gdouble x, gdouble y) final;
+    bool motionevent(gdouble x, gdouble y) final;
 
     /** react to a window leave, default is to do nothing */
-    void leaveevent() final;
+    bool leaveevent() final;
 
   private:
     /** calculate new state */
@@ -347,11 +353,11 @@ public:
   GuiDevice(const std::string &name, SDL_JoystickID which,
             const std::string &fgui =
 #if GTK_CHECK_VERSION(4, 0, 0)
-                "../../../../FlexiStick/flexi-stick/stickgui.ui"
+              "../../../../FlexiStick/flexi-stick/stickgui.ui"
 #elif GTK_CHECK_VERSION(3, 0, 0)
-                "../../../../FlexiStick/flexi-stick/stickgui.glade"
+              "../../../../FlexiStick/flexi-stick/stickgui.glade"
 #elif GTK_CHECK_VERSION(2, 0, 0)
-                "../../../../FlexiStick/flexi-stick/stickgui.glade2"
+              "../../../../FlexiStick/flexi-stick/stickgui.glade2"
 #else
 #error "No suitable GTK version found"
 #endif
@@ -375,7 +381,29 @@ public:
   /** get a value from the list */
   bool pollEvent(SDL_Event *ev);
 
-#if !GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(4, 0, 0)
+  /** draw function */
+  void draw(cairo_t *cr, int width, int height);
+
+  /** react to button press or release */
+  void buttonevent(guint button, bool press, gdouble x, gdouble y);
+
+  /** react to a mouse motion event */
+  void motionevent(gdouble x, gdouble y);
+
+  /** react to a window leave, default is to do nothing */
+  void leaveevent();
+
+  /** Key press event */
+  void keyevent(guint keyval, bool press);
+
+#elif GTK_CHECK_VERSION(2, 0, 0)
+
+#if GTK_CHECK_VERSION(3, 0, 0)
+
+  /** Draw callback from gtk */
+  gboolean draw(GtkWidget *widget, cairo_t *cr, gpointer data);
+#else
 
   /** Old style drawing */
   gboolean drawgtk2(GtkWidget *widget, GdkEventExpose *event, gpointer data);
@@ -384,23 +412,18 @@ public:
   void updatesize(GtkWidget *widget, GtkAllocation *allocation, void *data);
 #endif
 
+  /** Button state change */
+  gboolean buttonevent(GtkWidget *widget, GdkEventButton *event, gpointer data);
 
-#if GTK_CHECK_VERSION(4, 0, 0)
-       /** draw function */
-    void draw(cairo_t *cr, int width, int height);
+    /** Key release */
+  gboolean keyevent(GtkWidget *widget, GdkEventKey *event, gpointer data);
 
-    /** react to button press or release */
-    void buttonevent(guint button, bool press, gdouble x, gdouble y);
+    /** Pointer motion event */
+  gboolean motionevent(GtkWidget *widget, GdkEventMotion *event, gpointer data);
 
-    /** react to a mouse motion event */
-    void motionevent(gdouble x, gdouble y);
-
-    /** react to a window leave, default is to do nothing */
-    void leaveevent();
-
-#else
-  /** Draw callback from gtk */
-  gboolean draw(GtkWidget *widget, cairo_t *cr, gpointer data);
+    /** Leave event, reset any motion */
+  gboolean leaveevent(GtkWidget *widget, GdkEventCrossing *event,
+                      gpointer data);
 #endif
   /** create new hat in gui device */
   Uint8 declareHat(boost::intrusive_ptr<GuiValueGroup> g);
