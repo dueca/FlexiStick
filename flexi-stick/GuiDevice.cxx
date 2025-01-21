@@ -12,15 +12,10 @@
 #define GuiDevice_cxx
 #include "GuiDevice.hxx"
 
-#include <iomanip>
 #include <algorithm>
 
-#ifdef PDEBUG
-#include <iostream>
-#define PDEB(A) std::cerr << A << std::endl;
-#else
-#define PDEB(A)
-#endif
+#define DEBPRINTLEVEL 1
+#include <debprint.h>
 
 using namespace dueca;
 
@@ -96,8 +91,9 @@ bool GuiDevice::init()
 
     // get clicks with a click controller
   auto clickcontroller = gtk_gesture_click_new();
+  gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(clickcontroller), 0);
   gtk_event_controller_set_propagation_phase(
-    GTK_EVENT_CONTROLLER(clickcontroller), GTK_PHASE_TARGET);
+    GTK_EVENT_CONTROLLER(clickcontroller), GTK_PHASE_BUBBLE);
   gtk_widget_add_controller(fbwin["drawing"],
                             GTK_EVENT_CONTROLLER(clickcontroller));
   g_signal_connect(
@@ -106,6 +102,7 @@ bool GuiDevice::init()
                    gpointer av) {
       auto button =
         gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(gesture));
+      DEB("Click b=" << button);
       reinterpret_cast<GuiDevice *>(av)->buttonevent(button, false, x, y);
     }),
     this);
@@ -115,6 +112,7 @@ bool GuiDevice::init()
                    gpointer av) {
       auto button =
         gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(gesture));
+      DEB("Rel b=" << button);
       reinterpret_cast<GuiDevice *>(av)->buttonevent(button, false, x, y);
     }),
     this);
@@ -122,12 +120,13 @@ bool GuiDevice::init()
     // motion events too
   auto motioncontroller = gtk_event_controller_motion_new();
   gtk_event_controller_set_propagation_phase(
-    GTK_EVENT_CONTROLLER(motioncontroller), GTK_PHASE_TARGET);
+    GTK_EVENT_CONTROLLER(motioncontroller), GTK_PHASE_BUBBLE);
   gtk_widget_add_controller(fbwin["drawing"],
                             GTK_EVENT_CONTROLLER(motioncontroller));
   g_signal_connect(motioncontroller, "motion",
                    G_CALLBACK(+[](GtkEventControllerMotion *self, gdouble x,
                                   gdouble y, gpointer av) {
+                    DEB("Motion " << x << "," << y);
                      reinterpret_cast<GuiDevice *>(av)->motionevent(x, y);
                    }),
                    this);
@@ -392,7 +391,7 @@ bool GuiDevice::GuiSlider::passChange()
 
 void GuiDevice::GuiSlider::draw(cairo_t *cr, int width, int height)
 {
-  PDEB("slider redraw, val " << value << ' ' << xstart.transpose() << "->"
+  DEB("slider redraw, val " << value << ' ' << xstart.transpose() << "->"
                              << xend.transpose());
   cairo_save(cr);
   cairo_translate(cr, xstart[0], xstart[1]);
@@ -510,7 +509,7 @@ bool GuiDevice::GuiSlider2D::passChange()
 
 void GuiDevice::GuiSlider2D::draw(cairo_t *cr, int width, int height)
 {
-  PDEB("slider 2D redraw, val " << valuex << "," << valuey << " "
+  DEB("slider 2D redraw, val " << valuex << "," << valuey << " "
                                 << xstart.transpose() << "->"
                                 << xend.transpose());
 
@@ -611,7 +610,7 @@ void GuiDevice::GuiHat::draw(cairo_t *cr, int width, int height)
     if (value == idxvalue[i]) {
       cairo_arc(cr, 0.0, 0.5 * radius, 0.25 * radius, -M_PI, M_PI);
       cairo_fill(cr);
-      PDEB("filling arc " << i << std::hex << int(idxvalue[i]) << std::dec);
+      DEB("filling arc " << i << std::hex << int(idxvalue[i]) << std::dec);
     }
     else {
       cairo_arc(cr, 0.0, 0.5 * radius, 0.25 * radius, 0.0, M_PI);
@@ -625,23 +624,23 @@ void GuiDevice::GuiHat::adjust(double d2, double rx, double ry)
 {
   static double rs = sin(M_PI / 8.0);
   if (d2 < 0.20 * radius * radius) {
-    PDEB("rx " << rx << " ry " << ry << " c");
+    DEB("rx " << rx << " ry " << ry << " c");
     value = SDL_HAT_CENTERED;
   }
   else if (rs * abs(rx) > abs(ry)) {
-    PDEB("rx " << rx << " ry " << ry << " lr");
+    DEB("rx " << rx << " ry " << ry << " lr");
     value = (rx > 0.0) ? SDL_HAT_RIGHT : SDL_HAT_LEFT;
   }
   else if (rs * abs(ry) > abs(rx)) {
-    PDEB("rx " << rx << " ry " << ry << " ud");
+    DEB("rx " << rx << " ry " << ry << " ud");
     value = (ry < 0.0) ? SDL_HAT_UP : SDL_HAT_DOWN;
   }
   else if (rx > 0) {
-    PDEB("rx " << rx << " ry " << ry << " lru");
+    DEB("rx " << rx << " ry " << ry << " lru");
     value = (ry < 0.0) ? SDL_HAT_RIGHTUP : SDL_HAT_RIGHTDOWN;
   }
   else {
-    PDEB("rx " << rx << " ry " << ry << " lrd");
+    DEB("rx " << rx << " ry " << ry << " lrd");
     value = (ry < 0.0) ? SDL_HAT_LEFTUP : SDL_HAT_LEFTDOWN;
   }
 }
@@ -746,6 +745,7 @@ void GuiDevice::buttonevent(guint button, bool press, gdouble x, gdouble y)
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     redraw |= (*gg)->buttonevent(button, press, x, y);
   }
+  DEB("Button " << button << " p/r " << press << " redraw=" << redraw);
   if (redraw) {
     gtk_widget_queue_draw(fbwin["drawing"]);
   }
@@ -757,6 +757,7 @@ void GuiDevice::motionevent(gdouble x, gdouble y)
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     redraw |= (*gg)->motionevent(x, y);
   }
+  DEB("Motion x=" << x << " y=" << y << " redraw=" << redraw);
   if (redraw) {
     gtk_widget_queue_draw(fbwin["drawing"]);
   }
@@ -768,6 +769,7 @@ void GuiDevice::leaveevent()
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     redraw |= (*gg)->leaveevent();
   }
+  DEB("Leave redraw=" << redraw);
   if (redraw) {
     gtk_widget_queue_draw(fbwin["drawing"]);
   }
@@ -779,7 +781,8 @@ void GuiDevice::keyevent(guint keyval, bool press)
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     redraw |= (*gg)->keyevent(keyval, press);
   }
-  if (redraw) {
+  DEB("Key keyval=" << keyval << " p/r=" << press << " redraw=" << redraw);
+   if (redraw) {
     gtk_widget_queue_draw(fbwin["drawing"]);
   }
 }
