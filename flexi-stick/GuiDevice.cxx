@@ -14,7 +14,7 @@
 
 #include <algorithm>
 
-#define DEBPRINTLEVEL 1
+#define DEBPRINTLEVEL -1
 #include <debprint.h>
 
 using namespace dueca;
@@ -103,7 +103,7 @@ bool GuiDevice::init()
       auto button =
         gtk_gesture_single_get_current_button(GTK_GESTURE_SINGLE(gesture));
       DEB("Click b=" << button);
-      reinterpret_cast<GuiDevice *>(av)->buttonevent(button, false, x, y);
+      reinterpret_cast<GuiDevice *>(av)->buttonevent(button, true, x, y);
     }),
     this);
   g_signal_connect(
