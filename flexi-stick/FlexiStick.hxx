@@ -37,7 +37,7 @@ USING_DUECA_NS;
 #include "JoystickDevice.hxx"
 #include "TouchDevice.hxx"
 #include "ChannelAccess.hxx"
-#if defined(DUECA_CONFIG_GTK3) || defined(DUECA_CONFIG_GTK2)
+#if defined(DUECA_CONFIG_GTK3) || defined(DUECA_CONFIG_GTK2) || defined(DUECA_CONFIG_GTK4)
 #include "GuiDevice.hxx"
 #define GUI_DEVICE
 #endif
