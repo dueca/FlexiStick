@@ -201,7 +201,7 @@ gboolean GuiDevice::draw(GtkWidget *widget, cairo_t *cr, gpointer data)
                        &color); */
 
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
-    (*gg)->draw(widget, cr, data);
+    (*gg)->draw(cr, width, height);
   }
   return FALSE;
 }
@@ -816,7 +816,7 @@ gboolean GuiDevice::keyevent(GtkWidget *widget, GdkEventKey *event,
   bool redraw = false;
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     redraw |=
-      (*gg)->keyevent(event->keyval, event->keycode, event->x, event->y);
+      (*gg)->keyevent(event->keyval, event->type == GDK_KEY_PRESS);
   }
   if (redraw) {
     gtk_widget_queue_draw(widget);

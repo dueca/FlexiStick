@@ -21,10 +21,10 @@ rt_sync_mode = 2                       # 0=sigwait, obsolete
                                        # 3=rtc, obsolete
 
 # graphic interface selection, typically "none", "gtk2", "gtk3"
-graphic_interface = "gtk4"             # selection of interface
+graphic_interface = "gtk3"             # selection of interface
 
 ### parameters defining "size" of the time. Note that all nodes should have
-### the same compatible_increment, and for all nodes 
+### the same compatible_increment, and for all nodes
 ### tick_time_step/tick_base_increment should be the same
 tick_base_increment = 100              # logical increment of time, each tick
 tick_compatible_increment = 100        # same, but used at start_up
@@ -42,7 +42,7 @@ comm_prio_level = 2                    # priority communication process
 unpack_prio_level = 1                  # priority unpacking incoming data
 bulk_unpack_prio_level = 1             # priority unpacking bulk data
 
-### choice for the communication. 
+### choice for the communication.
 use_ip_comm = no_of_nodes > 1          # if true, use ethernet
 classic_ip = False                     # if true, use classic ip accessor
 
@@ -83,7 +83,7 @@ if use_ip_comm:
         priority_spec = bulk_unpack_prio,
         buffer_size = bulk_max_size).complete()
 
-### the packer manager keeps an inventory of all packers for transport to 
+### the packer manager keeps an inventory of all packers for transport to
 ### other nodes. The three arguments are a fill (bulk) packer, a normal packer
 ### and (if possible) a high_priority packer. One set per destination, here
 ### all referring to the same two packers
@@ -127,13 +127,13 @@ if use_ip_comm and classic_ip:
         if_address = if_address,
         timeout = 50000,
         n_senders = no_of_nodes,
-        send_order = send_order, 
+        send_order = send_order,
         time_spec = dueca.TimeSpec(0, communication_interval),
         priority = dueca.PrioritySpec(comm_prio_level, 0),
         delay_estimator = dueca.TransportDelayEstimator().param(
             const_delay = 50.1,
             delay_per_byte = 1.1,
-            s_v = 20.1,          
+            s_v = 20.1,
             s_const_delay = 10.1,
             s_delay_per_byte = 0.1,
             innov_max = 100.1).complete()).complete()
@@ -141,7 +141,7 @@ if use_ip_comm and classic_ip:
 elif use_ip_comm and send_order == 0:
 
     # new UDP communication, for the send master
-    
+
     # if a peer list has been created, follow it, otherwise invent a send
     # order
     if not locals().has_key('peerlist'):
@@ -157,7 +157,7 @@ elif use_ip_comm and send_order == 0:
         setup_port = mc_port,
         data_address = mc_address,
         data_port = mc_port + 1,
-        timeout = 0.2,   
+        timeout = 0.2,
         packet_size = packet_size,
         set_priority = dueca.PrioritySpec(comm_prio_level, 0),
         set_timing = dueca.TimeSpec(0, communication_interval),
@@ -179,11 +179,10 @@ elif use_ip_comm and send_order != 0:
         master_address = master_address,
         set_priority = dueca.PrioritySpec(comm_prio_level, 0),
         set_timing = dueca.TimeSpec(0, communication_interval)).complete()
-    
+
 ###  7   Pass control to the environment again.
 ###      It will now invoke a completeCreation method
-###      from the previously created singletons (1, 3, 4, 5, 6) to 
+###      from the previously created singletons (1, 3, 4, 5, 6) to
 ###      give these the opportunity to do additional initialisation
 ###      Then it creates the EntityManager for this node, and the
 ###      configuration continues with dueca_mod.py
-
