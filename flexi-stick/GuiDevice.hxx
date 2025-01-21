@@ -383,7 +383,7 @@ public:
 
 #if GTK_CHECK_VERSION(4, 0, 0)
   /** draw function */
-  void draw(cairo_t *cr, int width, int height);
+  void draw(GtkDrawingArea* w, cairo_t *cr, int width, int height);
 
   /** react to button press or release */
   void buttonevent(guint button, bool press, gdouble x, gdouble y);

@@ -253,8 +253,8 @@ gboolean StickView::draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 
   // rudder?
   cairo_save(cr);
-  cairo_translate(cr, height / 2, 5);
-  cairo_scale(cr, height / 2 - 10, height / 2 - 10);
+  cairo_translate(cr, height / 2.0f, 5);
+  cairo_scale(cr, height / 2.0f - 10, height / 2.0f - 10);
   cairo_line_to(cr, tval.vald, 0.0);
   cairo_arc(cr, tval.vald, 0.0, 0.02, -M_PI, M_PI);
   cairo_restore(cr);
@@ -262,8 +262,8 @@ gboolean StickView::draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 
   // throttle
   cairo_save(cr);
-  cairo_translate(cr, 5, height / 2);
-  cairo_scale(cr, height / 2 - 10, height / 2 - 10);
+  cairo_translate(cr, 5, height / 2.0f);
+  cairo_scale(cr, height / 2.0f - 10, height / 2.0f - 10);
   cairo_line_to(cr, 0.0, tval.valf);
   cairo_arc(cr, 0.0, tval.valf, 0.02, -M_PI, M_PI);
   cairo_restore(cr);

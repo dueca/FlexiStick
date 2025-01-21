@@ -2,9 +2,10 @@
 /*      item            : GuiDevice.cxx
         made by         : Rene' van Paassen
         date            : 170915
-              category        : body file
+        category        : body file
         description     :
-              changes         : 170915 first version
+        changes         : 170915 first version
+                          250121 gtk4
         language        : C++
 */
 
@@ -22,10 +23,6 @@
 #endif
 
 using namespace dueca;
-
-#if defined(DUECA_CONFIG_GTK2) && defined(DUECA_CONFIG_GTK3)
-#error "Cannot have both gtk3 and gtk3, check DCOMPONENTS in main Makefile"
-#endif
 
 namespace flexistick {
 GuiDevice::GuiValueGroup::GuiValueGroup(GuiDevice *master) :
@@ -93,7 +90,7 @@ bool GuiDevice::init()
   gtk_drawing_area_set_draw_func(
     GTK_DRAWING_AREA(fbwin["drawing"]),
     +[](GtkDrawingArea *w, cairo_t *cr, int width, int height, gpointer av) {
-      reinterpret_cast<GuiDevice *>(av)->draw(cr, width, height);
+      reinterpret_cast<GuiDevice *>(av)->draw(w, cr, width, height);
     },
     this, NULL);
 
@@ -140,6 +137,8 @@ bool GuiDevice::init()
                      reinterpret_cast<GuiDevice *>(av)->leaveevent();
                    }),
                    this);
+
+  fbwin.show();
 #endif
 
   return true;
@@ -172,10 +171,12 @@ void GuiDevice::updatesize(GtkWidget *widget, GtkAllocation *allocation,
 #endif
 
 #if GTK_CHECK_VERSION(4, 0, 0)
-void GuiDevice::draw(cairo_t *cr, int width, int height)
+void GuiDevice::draw(GtkDrawingArea* w, cairo_t *cr, int width, int height)
 {
-  cairo_set_source_rgb(cr, 0., 0., 0.);
-  cairo_paint(cr);
+  GdkRGBA color;
+  gtk_widget_get_color(GTK_WIDGET(w), &color);
+  gdk_cairo_set_source_rgba(cr, &color);
+  cairo_fill(cr);
 
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     (*gg)->draw(cr, width, height);
