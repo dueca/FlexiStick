@@ -217,7 +217,7 @@ gboolean GuiDevice::drawgtk2(GtkWidget *widget, GdkEventExpose *event,
   cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.7);
 
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
-    (*gg)->draw(widget, cr, data);
+    (*gg)->draw(cr, width, height);
   }
 
   cairo_destroy(cr);
