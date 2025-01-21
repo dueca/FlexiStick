@@ -14,7 +14,8 @@
         copyright       : (c) 2016 TUDelft-AE-C&S
 */
 
-
+#include "ChannelDef.hxx"
+#include "gtk/gtk.h"
 #define StickView_cxx
 
 // include the definition of the module class
@@ -32,22 +33,22 @@
 #define DO_INSTANTIATE
 #include <dueca.h>
 
-#ifdef DUECA_CONFIG_GTK3
+#if defined(DUECA_CONFIG_GTK3) || defined(DUECA_CONFIG_GTK4)
 
 // class/module name
-const char* const StickView::classname = "stick-view";
+const char *const StickView::classname = "stick-view";
 
 // Parameters to be inserted
-const ParameterTable* StickView::getMyParameterTable()
+const ParameterTable *StickView::getMyParameterTable()
 {
   static const ParameterTable parameter_table[] = {
     { "set-timing",
-      new MemberCall<_ThisModule_,TimeSpec>
-        (&_ThisModule_::setTimeSpec), set_timing_description },
+      new MemberCall<_ThisModule_, TimeSpec>(&_ThisModule_::setTimeSpec),
+      set_timing_description },
 
     { "check-timing",
-      new MemberCall<_ThisModule_,vector<int> >
-      (&_ThisModule_::checkTiming), check_timing_description },
+      new MemberCall<_ThisModule_, vector<int>>(&_ThisModule_::checkTiming),
+      check_timing_description },
 
     /* You can extend this table with labels and MemberCall or
        VarProbe pointers to perform calls or insert values into your
@@ -60,14 +61,14 @@ const ParameterTable* StickView::getMyParameterTable()
     /* The table is closed off with NULL pointers for the variable
        name and MemberCall/VarProbe object. The description is used to
        give an overall description of the module. */
-    { NULL, NULL, "please give a description of this module"} };
+    { NULL, NULL, "please give a description of this module" }
+  };
 
   return parameter_table;
 }
 
 // constructor
-StickView::StickView(Entity* e, const char* part, const
-                   PrioritySpec& ps) :
+StickView::StickView(Entity *e, const char *part, const PrioritySpec &ps) :
   /* The following line initialises the SimulationModule base class.
      You always pass the pointer to the entity, give the classname and the
      part arguments. */
@@ -82,7 +83,8 @@ StickView::StickView(Entity* e, const char* part, const
   // w_mytoken(getId(), NameSet(getEntity(), MyData2::classname, part),
   //           MyData2::classname, "label", Channel::Continuous),
   r_hiddata(getId(), NameSet(getEntity(), "FlexiStickTest", part),
-            FlexiStickTest::classname, 0),
+            FlexiStickTest::classname, 0, Channel::AnyTimeAspect),
+
   // create a clock, if you need time based triggering
   // instead of triggering on the incoming channels
   // myclock(),
@@ -99,18 +101,32 @@ StickView::StickView(Entity* e, const char* part, const
 bool StickView::complete()
 {
   static GladeCallbackTable table[] = {
+#if !GTK_CHECK_VERSION(4, 0, 0)
     { "drawing", "draw", gtk_callback(&_ThisModule_::draw) },
-    { NULL } };
+#endif
+    { NULL }
+  };
 
   /* All your parameters have been set. You may do extended
      initialisation here. Return false if something is wrong. */
   fbwin.readGladeFile(
-#if GTK_CHECK_VERSION(3,0,0)
-		      "../../../../FlexiStick/stick-view/stickviewgui.glade",
+#if GTK_CHECK_VERSION(4, 0, 0)
+    "../../../../FlexiStick/stick-view/stickviewgui.ui",
+#elif GTK_CHECK_VERSION(3, 0, 0)
+    "../../../../FlexiStick/stick-view/stickviewgui.glade",
 #else
 #error "No suitable GTK version found"
 #endif
-                      "stick-draw", reinterpret_cast<gpointer>(this), table);
+    "stick-draw", reinterpret_cast<gpointer>(this), table);
+
+#if GTK_CHECK_VERSION(4, 0, 0)
+  static GtkCallerImp4<StickView, void, GtkDrawingArea *, cairo_t *, int, int>
+    gfun(&_ThisModule_::draw);
+
+  gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(fbwin["drawing"]),
+                                 gfun.c_callback(), gfun.clone(this), NULL);
+#endif
+
   fbwin.show();
 
   return true;
@@ -123,10 +139,11 @@ StickView::~StickView()
 }
 
 // as an example, the setTimeSpec function
-bool StickView::setTimeSpec(const TimeSpec& ts)
+bool StickView::setTimeSpec(const TimeSpec &ts)
 {
   // a time span of 0 is not acceptable
-  if (ts.getValiditySpan() == 0) return false;
+  if (ts.getValiditySpan() == 0)
+    return false;
 
   // specify the timespec to the activity
   do_calc.setTimeSpec(ts);
@@ -142,7 +159,7 @@ bool StickView::setTimeSpec(const TimeSpec& ts)
 
 // the checkTiming function installs a check on the activity/activities
 // of the module
-bool StickView::checkTiming(const vector<int>& i)
+bool StickView::checkTiming(const vector<int> &i)
 {
   if (i.size() == 3) {
     new TimingCheck(do_calc, i[0], i[1], i[2]);
@@ -169,66 +186,75 @@ bool StickView::isPrepared()
 }
 
 // start the module
-void StickView::startModule(const TimeSpec &time)
-{
-  do_calc.switchOn(time);
-}
+void StickView::startModule(const TimeSpec &time) { do_calc.switchOn(time); }
 
 // stop the module
-void StickView::stopModule(const TimeSpec &time)
-{
-  do_calc.switchOff(time);
-}
+void StickView::stopModule(const TimeSpec &time) { do_calc.switchOff(time); }
 
 // this routine contains the main simulation process of your module. You
 // should read the input channels here, and calculate and write the
 // appropriate output
-void StickView::doCalculation(const TimeSpec& ts)
+void StickView::doCalculation(const TimeSpec &ts)
 {
   try {
     DataReader<FlexiStickTest> rd(r_hiddata, ts);
     tval = rd.data();
-    //cout << rd.data() << endl;
+    // cout << rd.data() << endl;
 
     gtk_widget_queue_draw(fbwin["drawing"]);
   }
-  catch (const dueca::NoDataAvailable& e) {
+  catch (const dueca::NoDataAvailable &e) {
     // cout << "No data " << ts << endl;
   }
 }
 
-gboolean StickView::draw(GtkWidget* widget, cairo_t *cr, gpointer data)
+#if GTK_CHECK_VERSION(4, 0, 0)
+void StickView::draw(GtkDrawingArea *widget, cairo_t *cr, int width, int height,
+                     gpointer data)
+#elif GTK_CHECK_VERSION(3, 0, 0)
+gboolean StickView::draw(GtkWidget *widget, cairo_t *cr, gpointer data)
+#endif
 {
+#if GTK_CHECK_VERSION(4, 0, 0)
+
+  GdkRGBA color;
+  gtk_widget_get_color(GTK_WIDGET(widget), &color);
+  gdk_cairo_set_source_rgba(cr, &color);
+  cairo_fill(cr);
+
+#elif GTK_CHECK_VERSION(3, 0, 0)
+
   guint width, height;
   GdkRGBA color;
   GtkStyleContext *context;
 
-  context = gtk_widget_get_style_context (widget);
+  context = gtk_widget_get_style_context(widget);
 
-  width = gtk_widget_get_allocated_width (widget);
-  height = gtk_widget_get_allocated_height (widget);
+  width = gtk_widget_get_allocated_width(widget);
+  height = gtk_widget_get_allocated_height(widget);
 
-  gtk_render_background (context, cr, 0, 0, width, height);
-  gtk_style_context_get_color (context,
-                               gtk_style_context_get_state (context),
-                               &color);
+  gtk_render_background(context, cr, 0, 0, width, height);
+  gtk_style_context_get_color(context, gtk_style_context_get_state(context),
+                              &color);
+
+#endif
 
   // 2d movement
   cairo_set_line_width(cr, 2.0);
   cairo_save(cr);
   cairo_translate(cr, 10, 10);
-  cairo_scale(cr, height-20, height-20);
+  cairo_scale(cr, height - 20, height - 20);
   cairo_rectangle(cr, 0.0, 0.0, 1.0, 1.0);
   cairo_move_to(cr, 0.5, 0.5);
-  cairo_rel_line_to(cr, 0.5*tval.vecd[0], 0.5*tval.vecd[1]);
-  cairo_arc(cr, 0.5*tval.vecd[0], 0.5*tval.vecd[1], 0.05, -M_PI, M_PI);
+  cairo_rel_line_to(cr, 0.5 * tval.vecd[0], 0.5 * tval.vecd[1]);
+  cairo_arc(cr, 0.5 * tval.vecd[0], 0.5 * tval.vecd[1], 0.05, -M_PI, M_PI);
   cairo_restore(cr);
   cairo_stroke(cr);
 
   // rudder?
   cairo_save(cr);
-  cairo_translate(cr, height/2, 5);
-  cairo_scale(cr, height/2-10, height/2-10);
+  cairo_translate(cr, height / 2.0f, 5);
+  cairo_scale(cr, height / 2.0f - 10, height / 2.0f - 10);
   cairo_line_to(cr, tval.vald, 0.0);
   cairo_arc(cr, tval.vald, 0.0, 0.02, -M_PI, M_PI);
   cairo_restore(cr);
@@ -236,8 +262,8 @@ gboolean StickView::draw(GtkWidget* widget, cairo_t *cr, gpointer data)
 
   // throttle
   cairo_save(cr);
-  cairo_translate(cr, 5, height/2);
-  cairo_scale(cr, height/2-10, height/2-10);
+  cairo_translate(cr, 5, height / 2.0f);
+  cairo_scale(cr, height / 2.0f - 10, height / 2.0f - 10);
   cairo_line_to(cr, 0.0, tval.valf);
   cairo_arc(cr, 0.0, tval.valf, 0.02, -M_PI, M_PI);
   cairo_restore(cr);
@@ -245,13 +271,24 @@ gboolean StickView::draw(GtkWidget* widget, cairo_t *cr, gpointer data)
 
   // buttons
   cairo_arc(cr, height + 10, 20, 5, -M_PI, M_PI);
-  if (tval.valb) cairo_fill(cr); else cairo_stroke(cr);
+  if (tval.valb)
+    cairo_fill(cr);
+  else
+    cairo_stroke(cr);
   cairo_arc(cr, height + 10, 40, 5, -M_PI, M_PI);
-  if (tval.vecb[0]) cairo_fill(cr); else cairo_stroke(cr);
+  if (tval.vecb[0])
+    cairo_fill(cr);
+  else
+    cairo_stroke(cr);
   cairo_arc(cr, height + 10, 60, 5, -M_PI, M_PI);
-  if (tval.vecb[0]) cairo_fill(cr); else cairo_stroke(cr);
+  if (tval.vecb[0])
+    cairo_fill(cr);
+  else
+    cairo_stroke(cr);
 
+#if !GTK_CHECK_VERSION(4, 0, 0)
   return FALSE;
+#endif
 }
 
 // Make a TypeCreator object for this module, the TypeCreator

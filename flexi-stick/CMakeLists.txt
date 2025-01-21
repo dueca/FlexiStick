@@ -12,7 +12,8 @@ include(FindPkgConfig)
 
 # gui only if component added
 if ("gtk3" IN_LIST DUECA_COMPONENTS OR
-    "gtk2" IN_LIST DUECA_COMPONENTS)
+    "gtk2" IN_LIST DUECA_COMPONENTS OR
+    "gtk4" IN_LIST DUECA_COMPONENTS)
   set(GUISOURCES GuiDevice.cxx GuiDevice.hxx)
 endif()
 
