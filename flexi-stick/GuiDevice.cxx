@@ -126,7 +126,7 @@ bool GuiDevice::init()
   g_signal_connect(motioncontroller, "motion",
                    G_CALLBACK(+[](GtkEventControllerMotion *self, gdouble x,
                                   gdouble y, gpointer av) {
-                    DEB("Motion " << x << "," << y);
+                     DEB("Motion " << x << "," << y);
                      reinterpret_cast<GuiDevice *>(av)->motionevent(x, y);
                    }),
                    this);
@@ -170,7 +170,7 @@ void GuiDevice::updatesize(GtkWidget *widget, GtkAllocation *allocation,
 #endif
 
 #if GTK_CHECK_VERSION(4, 0, 0)
-void GuiDevice::draw(GtkDrawingArea* w, cairo_t *cr, int width, int height)
+void GuiDevice::draw(GtkDrawingArea *w, cairo_t *cr, int width, int height)
 {
   GdkRGBA color;
   gtk_widget_get_color(GTK_WIDGET(w), &color);
@@ -197,8 +197,8 @@ gboolean GuiDevice::draw(GtkWidget *widget, cairo_t *cr, gpointer data)
 
   gtk_render_background(context, cr, 0, 0, width, height);
     /* gtk_style_context_get_color (context,
-                       gtk_style_context_get_state (context),
-                       &color); */
+                   gtk_style_context_get_state (context),
+                   &color); */
 
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     (*gg)->draw(widget, cr, data);
@@ -344,10 +344,12 @@ bool GuiDevice::GuiButton::leaveevent()
 
   // ------------------- slider ---------------------------------------
 GuiDevice::GuiSlider::GuiSlider(double x0, double y0, double x1, double y1,
-                                double r, GuiDevice *master, bool sticky) :
+                                double r, double xneutral, GuiDevice *master,
+                                bool sticky) :
   GuiValueGroup(master),
   grabbed(false),
-  value(0.0),
+  value(xneutral),
+  xneutral(xneutral),
   radius(r),
   sticky(sticky)
 {
@@ -392,7 +394,7 @@ bool GuiDevice::GuiSlider::passChange()
 void GuiDevice::GuiSlider::draw(cairo_t *cr, int width, int height)
 {
   DEB("slider redraw, val " << value << ' ' << xstart.transpose() << "->"
-                             << xend.transpose());
+                            << xend.transpose());
   cairo_save(cr);
   cairo_translate(cr, xstart[0], xstart[1]);
   cairo_line_to(cr, 0.0, 0.0);
@@ -420,7 +422,7 @@ bool GuiDevice::GuiSlider::buttonevent(guint button, bool press, gdouble x,
     else if (grabbed && !press) {
       grabbed = false;
       if (!sticky && button == 1) {
-        value = 0.0;
+        value = xneutral;
       }
     }
   }
@@ -446,11 +448,14 @@ bool GuiDevice::GuiSlider::leaveevent()
 
   //-------------------------- slider 2D ----------------------------
 GuiDevice::GuiSlider2D::GuiSlider2D(double x0, double y0, double x1, double y1,
-                                    double r, GuiDevice *master, bool sticky) :
+                                    double r, double xneutral, double yneutral,
+                                    GuiDevice *master, bool sticky) :
   GuiValueGroup(master),
   grabbed(false),
-  valuex(0.0),
-  valuey(0.0),
+  valuex(xneutral),
+  valuey(yneutral),
+  xneutral(xneutral),
+  yneutral(yneutral),
   radius(r),
   sticky(sticky)
 {
@@ -510,8 +515,8 @@ bool GuiDevice::GuiSlider2D::passChange()
 void GuiDevice::GuiSlider2D::draw(cairo_t *cr, int width, int height)
 {
   DEB("slider 2D redraw, val " << valuex << "," << valuey << " "
-                                << xstart.transpose() << "->"
-                                << xend.transpose());
+                               << xstart.transpose() << "->"
+                               << xend.transpose());
 
   cairo_save(cr);
   cairo_translate(cr, xstart[0], xstart[1]);
@@ -543,8 +548,8 @@ bool GuiDevice::GuiSlider2D::buttonevent(guint button, bool press, gdouble x,
     else if (grabbed && !press) {
       grabbed = false;
       if (!sticky && button == 1) {
-        valuex = 0.0;
-        valuey = 0.0;
+        valuex = xneutral;
+        valuey = yneutral;
       }
     }
   }
@@ -782,7 +787,7 @@ void GuiDevice::keyevent(guint keyval, bool press)
     redraw |= (*gg)->keyevent(keyval, press);
   }
   DEB("Key keyval=" << keyval << " p/r=" << press << " redraw=" << redraw);
-   if (redraw) {
+  if (redraw) {
     gtk_widget_queue_draw(fbwin["drawing"]);
   }
 }

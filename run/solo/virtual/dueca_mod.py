@@ -82,16 +82,16 @@ if this_node_id == ecs_node:
             enable_record_replay = True).param(
                 ('add-virtual', ("tiger", )),
                 ('add-virtual-slider-2d',
-                 (15, 15, 185, 185, 3)),
+                 (15, 15, 185, 185, 3, 0, 0, -20)),
                 # axis 2, yaw
                 ('add-virtual-slider',
                  (10, 195, 190, 195, 3)),
                 # axis 3, throttle
                 ('add-virtual-slider',
-                 (5, 190, 5, 10, 3, 1)),
+                 (5, 190, 5, 10, 3, 1, -100)),
                 # place the window somewhere
                 ('virtual-position-size', (450, 450)),
-                 
+
                  # values are already coverted to -1 .. 1
                 #('create-poly', ("stickx", "tiger.a[0]")),
                 #('poly-params', (0.0, 1.0)),
@@ -102,7 +102,7 @@ if this_node_id == ecs_node:
                 ('poly-params', (0.0, 1.0)),
                 ('create-poly', ("throttle", "tiger.a[2]")),
                 ('poly-params', (0.5, 0.5)),
- 
+
                 # channel written
                 ('add-channel',
                  ("main",                       # var name
@@ -115,7 +115,7 @@ if this_node_id == ecs_node:
                  ('add-link', ("main.vecd[0]", "stickx")),
                 ('add-link', ("main.vecd[1]", "sticky")),
                 ('add-link', ("main.valf", "tiger.a[2]")),
- 
+
                 ('add-channel',
                  ("second",
                   "MediumJoystick://ph-simple",
