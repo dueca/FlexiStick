@@ -63,7 +63,8 @@ public:
 
     virtual bool leaveevent() = 0;
 
-    virtual bool buttonevent(guint button, bool press, gdouble x, gdouble y) = 0;
+    virtual bool buttonevent(guint button, bool press, gdouble x,
+                             gdouble y) = 0;
 
     /** Default constructor, initialize refcount */
     GuiValueGroup(GuiDevice *master);
@@ -162,6 +163,9 @@ public:
     /** state, -1 to 1 */
     double value;
 
+    /** neutral value */
+    double xneutral;
+
     /** bottom/left of the slider */
     Eigen::Vector2d xstart;
 
@@ -185,7 +189,7 @@ public:
 
     /** slider creation */
     GuiSlider(double x0, double y0, double x1, double y1, double r,
-              GuiDevice *master, bool sticky);
+              double xneutral, GuiDevice *master, bool sticky);
 
     /** Check for changed value and pass if so */
     bool passChange();
@@ -235,6 +239,12 @@ public:
     /** state, -1 to 1 */
     double valuey;
 
+   /** neutral value */
+    double xneutral;
+
+    /** neutral value */
+    double yneutral;
+
     /** bottom/left of the slider */
     Eigen::Vector2d xstart;
 
@@ -255,7 +265,8 @@ public:
 
     /** slider creation */
     GuiSlider2D(double x0, double y0, double x1, double y1, double r,
-                GuiDevice *master, bool sticky);
+                double xneutral, double yneutral, GuiDevice *master,
+                bool sticky);
 
     /** Check for changed value and pass if so */
     bool passChange();
@@ -383,7 +394,7 @@ public:
 
 #if GTK_CHECK_VERSION(4, 0, 0)
   /** draw function */
-  void draw(GtkDrawingArea* w, cairo_t *cr, int width, int height);
+  void draw(GtkDrawingArea *w, cairo_t *cr, int width, int height);
 
   /** react to button press or release */
   void buttonevent(guint button, bool press, gdouble x, gdouble y);

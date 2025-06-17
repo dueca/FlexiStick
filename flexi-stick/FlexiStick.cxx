@@ -189,15 +189,20 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       new MemberCall<_ThisModule_, std::vector<int> >
       (&_ThisModule_::addVirtualSlider),
       "add a virtual slider. Supply x0, y0 for slider start coordinates,\n"
-      "x1, y1 for slider end coordinates, and r for the slider radius\n"
-      "optionally add '1' to obtain sticky (throttle?) behaviour" },
+      "x1, y1 for slider end coordinates, r for the slider radius and optionally \n"
+      "add '1' to obtain sticky (throttle?) behaviour, '0' for normal (back to neutral)\n"
+      "behaviour. Optionally add a 'neutral' percentage, which will be the initial value\n"
+      "of the indicator, -100 to 100"
+    },
 
     { "add-virtual-slider-2d",
       new MemberCall<_ThisModule_, std::vector<int> >
       (&_ThisModule_::addVirtualSlider2D),
       "add a virtual slider. Supply x0, y0 for slider start coordinates,\n"
       "x1, y1 for slider end coordinates, and r for the slider radius\n"
-      "optionally add '1' to obtain sticky behaviour" },
+      "optionally add '1' to obtain sticky behaviour, and optionally add 2 values for the\n"
+      "'neutral' position, which will be the initial x, y value, -100,-100 to 100,100"
+    },
 
     { "add-virtual-button",
       new MemberCall<_ThisModule_, std::vector<int> >
@@ -1395,8 +1400,8 @@ bool FlexiStick::setVirtualPositionSize(const std::vector<int>& ps)
 
 bool FlexiStick::addVirtualSlider(const std::vector<int>& cpar)
 {
-  if (cpar.size() != 5 && cpar.size() != 6) {
-    E_MOD("Need five or six arguments for virtual slider");
+  if (cpar.size() != 5 && cpar.size() != 6 && cpar.size() != 7) {
+    E_MOD("Need five to seven arguments for virtual slider");
     return false;
   }
   if (!gui_device.size()) {
@@ -1405,16 +1410,17 @@ bool FlexiStick::addVirtualSlider(const std::vector<int>& cpar)
   }
 
   new GuiDevice::GuiSlider(cpar[0], cpar[1], cpar[2], cpar[3], cpar[4],
+                           (cpar.size() == 7 ? 0.01*cpar[6] : 0.0),
                            gui_device.back().get(),
-                           (cpar.size() == 6 && cpar[5] != 0));
+                           (cpar.size() >= 6 && cpar[5] != 0));
 
   return true;
 }
 
 bool FlexiStick::addVirtualSlider2D(const std::vector<int>& cpar)
 {
-  if (cpar.size() != 5 && cpar.size() != 6) {
-    E_MOD("Need five or six arguments for virtual 2D slider");
+  if (cpar.size() != 5 && cpar.size() != 6 && cpar.size() != 8) {
+    E_MOD("Need five, six or eight arguments for virtual 2D slider");
     return false;
   }
   if (!gui_device.size()) {
@@ -1423,8 +1429,10 @@ bool FlexiStick::addVirtualSlider2D(const std::vector<int>& cpar)
   }
 
   new GuiDevice::GuiSlider2D(cpar[0], cpar[1], cpar[2], cpar[3], cpar[4],
+                             (cpar.size() == 8 ? 0.01*cpar[6] : 0.0),
+                             (cpar.size() == 8 ? 0.01*cpar[7] : 0.0),
                              gui_device.back().get(),
-                             (cpar.size() == 6 && cpar[5] != 0));
+                             (cpar.size() >= 6 && cpar[5] != 0));
 
   return true;
 }
