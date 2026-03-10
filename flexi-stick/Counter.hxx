@@ -59,7 +59,7 @@ namespace flexistick
     void takeSnapshot(dueca::smartstring::json_string_writer& writer);
 
     /** Load state from json */
-    void loadSnapshot(JValue& doc);
+    void loadSnapshot(const JValue& doc);
   };
 
 }
