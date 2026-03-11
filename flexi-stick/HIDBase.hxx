@@ -77,7 +77,8 @@ struct HIDBase
     /** constructor */
     HIDInputValue(D neutral=0, bool sticky=false) :
       FlexiLink(),
-      value(neutral)
+      value(neutral),
+      sticky(sticky)
     {}
   };
 

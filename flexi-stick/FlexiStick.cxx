@@ -26,9 +26,8 @@
 #define E_MOD
 #include <debug.h>
 
-#ifndef DEB
-#define DEB(A) std::cerr << A << std::endl;
-#endif
+#define DEBPRINTLEVEL -1
+#include <dueca/debprint.h>
 
 // include additional files needed for your calculation here
 #include <dueca/Ticker.hxx>
