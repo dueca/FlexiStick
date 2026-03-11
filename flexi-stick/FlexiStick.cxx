@@ -216,7 +216,7 @@ const ParameterTable *FlexiStick::getMyParameterTable()
     { "add-virtual-hat",
       new MemberCall<_ThisModule_, std::vector<int>>(
         &_ThisModule_::addVirtualHat),
-      "add a virtual button. Supply x0, y0 for hat center, and r for the\n"
+      "add a virtual hat. Supply x0, y0 for hat center, and r for the\n"
       "hat radius, optionally add '1' to obtain sticky behaviour" },
 #endif
 
@@ -596,6 +596,7 @@ void FlexiStick::doCalculation(const TimeSpec &ts)
     dueca::smartstring::json_string_writer writer(snap_taken);
     writer.StartObject();
     for (const auto lnk: sources) {
+      DEB("Snapshot check " << lnk.first << " ?state=" << lnk.second->haveState())
       if (lnk.second->haveState()) {
         writer.Key(lnk.first.c_str());
         lnk.second->takeSnapshot(writer);
