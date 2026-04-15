@@ -240,7 +240,7 @@ GuiDevice::GuiButton::GuiButton(double x, double y, double r, GuiDevice *master,
   event.timestamp = 0;
   event.which = master->getWhich();
   event.button =
-    master->declareButton(boost::intrusive_ptr<GuiValueGroup>(this));
+    master->declareButton(boost::intrusive_ptr<GuiValueGroup>(this), false, sticky);
   event.state = SDL_RELEASED;
   event.padding1 = 0;
   event.padding2 = 0;
@@ -371,7 +371,7 @@ GuiDevice::GuiSlider::GuiSlider(double x0, double y0, double x1, double y1,
   event.type = SDL_JOYAXISMOTION;
   event.timestamp = 0;
   event.which = master->getWhich();
-  event.axis = master->declareAxis(boost::intrusive_ptr<GuiValueGroup>(this));
+  event.axis = master->declareAxis(boost::intrusive_ptr<GuiValueGroup>(this), xneutral, sticky);
   event.padding1 = 0;
   event.padding2 = 0;
   event.padding3 = 0;
@@ -475,7 +475,7 @@ GuiDevice::GuiSlider2D::GuiSlider2D(double x0, double y0, double x1, double y1,
   eventx.type = SDL_JOYAXISMOTION;
   eventx.timestamp = 0;
   eventx.which = master->getWhich();
-  eventx.axis = master->declareAxis(boost::intrusive_ptr<GuiValueGroup>(this));
+  eventx.axis = master->declareAxis(boost::intrusive_ptr<GuiValueGroup>(this), xneutral, sticky);
   eventx.padding1 = 0;
   eventx.padding2 = 0;
   eventx.padding3 = 0;
@@ -486,7 +486,7 @@ GuiDevice::GuiSlider2D::GuiSlider2D(double x0, double y0, double x1, double y1,
   eventy.type = SDL_JOYAXISMOTION;
   eventy.timestamp = 0;
   eventy.which = master->getWhich();
-  eventy.axis = master->declareAxis(boost::intrusive_ptr<GuiValueGroup>());
+  eventy.axis = master->declareAxis(boost::intrusive_ptr<GuiValueGroup>(), yneutral, sticky);
   eventy.padding1 = 0;
   eventy.padding2 = 0;
   eventy.padding3 = 0;
@@ -591,7 +591,7 @@ GuiDevice::GuiHat::GuiHat(double x0, double y0, double r, GuiDevice *master,
   event.type = SDL_JOYHATMOTION;
   event.timestamp = 0;
   event.which = master->getWhich();
-  event.hat = master->declareHat(boost::intrusive_ptr<GuiValueGroup>(this));
+  event.hat = master->declareHat(boost::intrusive_ptr<GuiValueGroup>(this), SDL_HAT_CENTERED, sticky);
   event.value = SDL_HAT_CENTERED;
   event.padding1 = 0;
   event.padding2 = 0;
@@ -716,27 +716,27 @@ bool GuiDevice::GuiHat::leaveevent()
   return passChange();
 }
 
-  // ------- gui device itself ----------------------------------------
-Uint8 GuiDevice::declareHat(boost::intrusive_ptr<GuiValueGroup> g)
+// ------- gui device itself ----------------------------------------
+Uint8 GuiDevice::declareHat(boost::intrusive_ptr<GuiValueGroup> g, int value, bool sticky)
 {
-  boost::intrusive_ptr<HIDStick::HIDInputHat> nh(new HIDInputHat());
+  boost::intrusive_ptr<HIDStick::HIDInputHat> nh(new HIDInputHat(value, sticky));
   hats.push_back(nh);
   gvalue.push_back(g);
   return Uint8(hats.size() - 1);
 }
 
-Uint8 GuiDevice::declareAxis(boost::intrusive_ptr<GuiValueGroup> g)
+Uint8 GuiDevice::declareAxis(boost::intrusive_ptr<GuiValueGroup> g, double value, bool sticky)
 {
-  boost::intrusive_ptr<HIDStick::HIDInputAxis> nh(new HIDInputAxis());
+  boost::intrusive_ptr<HIDStick::HIDInputAxis> nh(new HIDInputAxis(value, sticky));
   axes.push_back(nh);
   if (g.get())
     gvalue.push_back(g);
   return Uint8(axes.size() - 1);
 }
 
-Uint8 GuiDevice::declareButton(boost::intrusive_ptr<GuiValueGroup> g)
+Uint8 GuiDevice::declareButton(boost::intrusive_ptr<GuiValueGroup> g, bool value, bool sticky)
 {
-  boost::intrusive_ptr<HIDStick::HIDInputButton> nh(new HIDInputButton());
+  boost::intrusive_ptr<HIDStick::HIDInputButton> nh(new HIDInputButton(value, sticky));
   buttons.push_back(nh);
   gvalue.push_back(g);
   return Uint8(buttons.size() - 1);

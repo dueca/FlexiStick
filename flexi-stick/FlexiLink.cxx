@@ -65,6 +65,6 @@ namespace flexistick {
   void FlexiLink::takeSnapshot(dueca::smartstring::json_string_writer& writer)
   { assert(0); }
 
-  void FlexiLink::loadSnapshot(JValue& doc)
+  void FlexiLink::loadSnapshot(const JValue& doc)
   { assert(0); }
 }

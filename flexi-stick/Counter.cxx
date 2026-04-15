@@ -104,7 +104,7 @@ namespace flexistick {
     writer.EndObject();
   }
 
-  void Counter::loadSnapshot(JValue& doc)
+  void Counter::loadSnapshot(const JValue& doc)
   {
     assert(doc.IsObject());
     for (JValue::ConstMemberIterator it = doc.MemberBegin();

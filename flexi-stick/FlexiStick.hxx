@@ -244,6 +244,12 @@ private:
 #if defined(DataRecorder_hxx)
   /** Record event data for replay */
   bool                 enable_record_replay;
+
+  /** Snapshot space */
+  rapidjson::GenericDocument<rapidjson::UTF8<>>  snap_restore;
+
+  /** Snapshot to take */
+  dueca::smartstring   snap_taken;
 #endif
 
 private: // activity allocation
@@ -304,6 +310,12 @@ public: // member functions for cooperation with DUECA
 public: // the member functions that are called for activities
   /** the method that implements the main calculation. */
   void doCalculation(const TimeSpec& ts);
+
+  /** Snapshot sending */
+  void fillSnapshot(const TimeSpec &ts, Snapshot &snap, bool from_trim);
+
+  /** Snapshot restore */
+  void loadSnapshot(const TimeSpec& ts, const Snapshot& snap);
 
 private:
   /** Read sdl event */

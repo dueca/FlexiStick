@@ -14,7 +14,6 @@
         copyright       : (c) 2016 TUDelft-AE-C&S
 */
 
-
 #define FlexiStick_cxx
 
 // include the definition of the module class
@@ -27,9 +26,8 @@
 #define E_MOD
 #include <debug.h>
 
-#ifndef DEB
-#define DEB(A) std::cerr << A << std::endl;
-#endif
+#define DEBPRINTLEVEL -1
+#include <dueca/debprint.h>
 
 // include additional files needed for your calculation here
 #include <dueca/Ticker.hxx>
@@ -51,22 +49,22 @@
 using namespace flexistick;
 
 // class/module name
-const char* const FlexiStick::classname = "flexi-stick";
+const char *const FlexiStick::classname = "flexi-stick";
 
 // Parameters to be inserted
-const ParameterTable* FlexiStick::getMyParameterTable()
+const ParameterTable *FlexiStick::getMyParameterTable()
 {
   static const ParameterTable parameter_table[] = {
     { "set-timing",
-      new MemberCall<_ThisModule_,TimeSpec>
-        (&_ThisModule_::setTimeSpec), set_timing_description },
+      new MemberCall<_ThisModule_, TimeSpec>(&_ThisModule_::setTimeSpec),
+      set_timing_description },
 
     { "check-timing",
-      new MemberCall<_ThisModule_,vector<int> >
-      (&_ThisModule_::checkTiming), check_timing_description },
+      new MemberCall<_ThisModule_, vector<int>>(&_ThisModule_::checkTiming),
+      check_timing_description },
 
-    { "add-device", new MemberCall<_ThisModule_,std::string>
-      (&_ThisModule_::addDevice),
+    { "add-device",
+      new MemberCall<_ThisModule_, std::string>(&_ThisModule_::addDevice),
       "Supply a symbolic name and number for an SDL joystick device. Example\n"
       "\"mydev:0\". Multiple devices may be added, and referenced by their\n"
       "name later when writing the data into channels or converting data.\n"
@@ -75,15 +73,15 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       "example \"mydev.a[0]\" will link to the device's first axis" },
 
 #if defined(DataRecorder_hxx)
-    { "enable-record-replay", new VarProbe<_ThisModule_,bool>
-      (&_ThisModule_::enable_record_replay),
+    { "enable-record-replay",
+      new VarProbe<_ThisModule_, bool>(&_ThisModule_::enable_record_replay),
       "When true, enable recording in Advance mode, and replay of the given\n"
       "recording. Note that replay will only work on the exact same set of\n"
       "channels being written\n" },
 #endif
 
-    { "add-touch", new MemberCall<_ThisModule_,std::string>
-      (&_ThisModule_::addTouch),
+    { "add-touch",
+      new MemberCall<_ThisModule_, std::string>(&_ThisModule_::addTouch),
       "Supply a symbolic name and number for an SDL touch device. Example\n"
       "\"mydev:0\". Multiple devices may be added, and referenced by their\n"
       "name later when writing the data into channels or converting data.\n"
@@ -91,8 +89,8 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       "state (s) for all fingers processed by the touch device." },
 
 #ifdef WACOMTOUCH
-    { "add-wacom-touch", new MemberCall<_ThisModule_,std::string>
-      (&_ThisModule_::addWacom),
+    { "add-wacom-touch",
+      new MemberCall<_ThisModule_, std::string>(&_ThisModule_::addWacom),
       "Supply a symbolic name and number of fingers for a Wacom touch device.\n"
       "Example \"mydev:2\". Multiple devices may be added, and are processed\n"
       "in the order given by the WACOM driver. These devices are known by\n"
@@ -100,14 +98,16 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       "The x, y and s (state) values may be accessed" },
 #endif
 
-    { "add-channel", new MemberCall<_ThisModule_,std::vector<std::string> >
-      (&_ThisModule_::addChannel),
+    { "add-channel",
+      new MemberCall<_ThisModule_, std::vector<std::string>>(
+        &_ThisModule_::addChannel),
       "Channel (entry) to write; specify short name, channel name, data\n"
       "class and entry label. Optionally specify event writing by adding\n"
       "\"event\" as last argument" },
 
-    { "add-link", new MemberCall<_ThisModule_,std::vector<std::string> >
-      (&_ThisModule_::addLink),
+    { "add-link",
+      new MemberCall<_ThisModule_, std::vector<std::string>>(
+        &_ThisModule_::addLink),
       "Create a link between a joystick button (b), axis (a) or hat (h), or a\n"
       "scaled or converted value and a written channel variable or a touch.\n"
       "input. Give the written variable by means of a channel name, dot (.)\n"
@@ -117,103 +117,105 @@ const ParameterTable* FlexiStick::getMyParameterTable()
       "counter, or scaler/converter." },
 
     { "create-counter",
-      new MemberCall<_ThisModule_, std::vector<std::string> >
-      (&_ThisModule_::createCounter),
+      new MemberCall<_ThisModule_, std::vector<std::string>>(
+        &_ThisModule_::createCounter),
       "create a counting device. Supply 3 or 4 strings; symbolic name\n"
       "for the counter, down counting input (see above), up counting input,\n"
       "and optionally the centering input." },
 
     { "counter-params",
-      new MemberCall<_ThisModule_, std::vector<int> >
-      (&_ThisModule_::defineCounter),
+      new MemberCall<_ThisModule_, std::vector<int>>(
+        &_ThisModule_::defineCounter),
       "Specification of counter, [minimum count], maximum count,\n"
       "[start/center value], [wrapping (0=no, 1=yes)]" },
 
     { "create-poly",
-      new MemberCall<_ThisModule_, std::vector<std::string> >
-      (&_ThisModule_::createPoly),
+      new MemberCall<_ThisModule_, std::vector<std::string>>(
+        &_ThisModule_::createPoly),
       "create a scaling polynomial. Supply symbolic name and input name" },
 
     { "poly-params",
-      new MemberCall<_ThisModule_, std::vector<double> >
-      (&_ThisModule_::definePoly),
+      new MemberCall<_ThisModule_, std::vector<double>>(
+        &_ThisModule_::definePoly),
       "set the parameters for the scaling polynomial, coefficient as\n"
       "a0 + a1 x + a2 x^2 etc." },
 
     { "create-steps",
-      new MemberCall<_ThisModule_, std::vector<std::string> >
-      (&_ThisModule_::createSteps),
+      new MemberCall<_ThisModule_, std::vector<std::string>>(
+        &_ThisModule_::createSteps),
       "create a stepping converter. Supply symbolic name and input name" },
 
     { "steps-params",
-      new MemberCall<_ThisModule_, std::vector<double> >
-      (&_ThisModule_::defineSteps),
+      new MemberCall<_ThisModule_, std::vector<double>>(
+        &_ThisModule_::defineSteps),
       "provide 'choice' steps for calibration, give input, output pairs\n"
       "u0, y0, u1, y1 etc. Finds u closest to input value, returns\n"
       "corresponding output value" },
 
     { "create-segments",
-      new MemberCall<_ThisModule_, std::vector<std::string> >
-      (&_ThisModule_::createSegments),
+      new MemberCall<_ThisModule_, std::vector<std::string>>(
+        &_ThisModule_::createSegments),
       "create a line segments converter. Supply symbolic name and input name" },
 
     { "segments-params",
-      new MemberCall<_ThisModule_, std::vector<double> >
-      (&_ThisModule_::defineSegments),
+      new MemberCall<_ThisModule_, std::vector<double>>(
+        &_ThisModule_::defineSegments),
       "provide piecewise continuous segments for calibration, give input,\n"
-      "output pairs u0, y0, u1, y1 etc. Does linear interpolation"
-    },
+      "output pairs u0, y0, u1, y1 etc. Does linear interpolation" },
 
     { "create-weighted",
-      new MemberCall<_ThisModule_, std::vector<std::string> >
-      (&_ThisModule_::createWeightedSum),
+      new MemberCall<_ThisModule_, std::vector<std::string>>(
+        &_ThisModule_::createWeightedSum),
       "create a weighted sum converter. Supply symbolic name, and then\n"
       "specify one or more inputs. Optionally supply a gain factor with\n"
       "the input, like \"1.2*val1\"" },
 
 #ifdef GUI_DEVICE
     { "add-virtual",
-      new MemberCall<_ThisModule_, std::vector<std::string> >
-      (&_ThisModule_::addVirtual),
+      new MemberCall<_ThisModule_, std::vector<std::string>>(
+        &_ThisModule_::addVirtual),
       "create a virtual stick device. Supply the name of the device\n"
       "and optionally a file name for the gui template" },
 
     { "virtual-position-size",
-      new MemberCall<_ThisModule_, std::vector<int> >
-      (&_ThisModule_::setVirtualPositionSize),
+      new MemberCall<_ThisModule_, std::vector<int>>(
+        &_ThisModule_::setVirtualPositionSize),
       "set the position (x, y) for the virtual stick gui window, and\n"
       "optionally also the size (w, h). To only set size, specify positions\n"
       "as -1, -1" },
 
     { "add-virtual-slider",
-      new MemberCall<_ThisModule_, std::vector<int> >
-      (&_ThisModule_::addVirtualSlider),
+      new MemberCall<_ThisModule_, std::vector<int>>(
+        &_ThisModule_::addVirtualSlider),
       "add a virtual slider. Supply x0, y0 for slider start coordinates,\n"
-      "x1, y1 for slider end coordinates, r for the slider radius and optionally \n"
-      "add '1' to obtain sticky (throttle?) behaviour, '0' for normal (back to neutral)\n"
-      "behaviour. Optionally add a 'neutral' percentage, which will be the initial value\n"
-      "of the indicator, -100 to 100"
-    },
+      "x1, y1 for slider end coordinates, r for the slider radius and "
+      "optionally \n"
+      "add '1' to obtain sticky (throttle?) behaviour, '0' for normal (back to "
+      "neutral)\n"
+      "behaviour. Optionally add a 'neutral' percentage, which will be the "
+      "initial value\n"
+      "of the indicator, -100 to 100" },
 
     { "add-virtual-slider-2d",
-      new MemberCall<_ThisModule_, std::vector<int> >
-      (&_ThisModule_::addVirtualSlider2D),
+      new MemberCall<_ThisModule_, std::vector<int>>(
+        &_ThisModule_::addVirtualSlider2D),
       "add a virtual slider. Supply x0, y0 for slider start coordinates,\n"
       "x1, y1 for slider end coordinates, and r for the slider radius\n"
-      "optionally add '1' to obtain sticky behaviour, and optionally add 2 values for the\n"
-      "'neutral' position, which will be the initial x, y value, -100,-100 to 100,100"
-    },
+      "optionally add '1' to obtain sticky behaviour, and optionally add 2 "
+      "values for the\n"
+      "'neutral' position, which will be the initial x, y value, -100,-100 to "
+      "100,100" },
 
     { "add-virtual-button",
-      new MemberCall<_ThisModule_, std::vector<int> >
-      (&_ThisModule_::addVirtualButton),
+      new MemberCall<_ThisModule_, std::vector<int>>(
+        &_ThisModule_::addVirtualButton),
       "add a virtual button. Supply x0, y0 for button center, and r for the\n"
       "button radius, optionally add '1' to obtain sticky behaviour" },
 
     { "add-virtual-hat",
-      new MemberCall<_ThisModule_, std::vector<int> >
-      (&_ThisModule_::addVirtualHat),
-      "add a virtual button. Supply x0, y0 for hat center, and r for the\n"
+      new MemberCall<_ThisModule_, std::vector<int>>(
+        &_ThisModule_::addVirtualHat),
+      "add a virtual hat. Supply x0, y0 for hat center, and r for the\n"
       "hat radius, optionally add '1' to obtain sticky behaviour" },
 #endif
 
@@ -228,19 +230,18 @@ const ParameterTable* FlexiStick::getMyParameterTable()
     /* The table is closed off with NULL pointers for the variable
        name and MemberCall/VarProbe object. The description is used to
        give an overall description of the module. */
-    { NULL, NULL,
-      "Generic flexible joystick device reading module."} };
+    { NULL, NULL, "Generic flexible joystick device reading module." }
+  };
 
   return parameter_table;
 }
 
 // constructor
-FlexiStick::FlexiStick(Entity* e, const char* part, const
-                   PrioritySpec& ps) :
+FlexiStick::FlexiStick(Entity *e, const char *part, const PrioritySpec &ps) :
   /* The following line initialises the SimulationModule base class.
      You always pass the pointer to the entity, give the classname and the
      part arguments. */
-  SimulationModule(e, classname, part, NULL, 0),
+  SimulationModule(e, classname, part, NULL, 1),
 
   // initialize the data you need in your simulation or process
   deltat(Ticker::single()->getDT()),
@@ -275,9 +276,9 @@ bool FlexiStick::complete()
   /* All your parameters have been set. You may do extended
      initialisation here. Return false if something is wrong. */
 #ifdef GUI_DEVICE
-  for (t_gui_device::iterator ii = gui_device.begin();
-       ii != gui_device.end(); ii++) {
-    res  = res && (*ii)->init();
+  for (t_gui_device::iterator ii = gui_device.begin(); ii != gui_device.end();
+       ii++) {
+    res = res && (*ii)->init();
   }
 #endif
 
@@ -299,10 +300,11 @@ FlexiStick::~FlexiStick()
 }
 
 // as an example, the setTimeSpec function
-bool FlexiStick::setTimeSpec(const TimeSpec& ts)
+bool FlexiStick::setTimeSpec(const TimeSpec &ts)
 {
   // a time span of 0 is not acceptable
-  if (ts.getValiditySpan() == 0) return false;
+  if (ts.getValiditySpan() == 0)
+    return false;
 
   // or do this with the clock if you have it (don't do both!)
   myclock.changePeriodAndOffset(ts);
@@ -316,7 +318,7 @@ bool FlexiStick::setTimeSpec(const TimeSpec& ts)
 
 // the checkTiming function installs a check on the activity/activities
 // of the module
-bool FlexiStick::checkTiming(const vector<int>& i)
+bool FlexiStick::checkTiming(const vector<int> &i)
 {
   if (i.size() == 3) {
     new TimingCheck(do_calc, i[0], i[1], i[2]);
@@ -335,8 +337,8 @@ bool FlexiStick::isPrepared()
 {
   bool res = true;
 
-  for (t_channelaccess::iterator cc = w_tokens.begin();
-       cc != w_tokens.end(); cc++) {
+  for (t_channelaccess::iterator cc = w_tokens.begin(); cc != w_tokens.end();
+       cc++) {
     if (!cc->second->isPrepared()) {
       W_MOD("Channel " << cc->first << " not prepared");
       res = false;
@@ -348,28 +350,22 @@ bool FlexiStick::isPrepared()
 }
 
 // start the module
-void FlexiStick::startModule(const TimeSpec &time)
-{
-  do_calc.switchOn(time);
-}
+void FlexiStick::startModule(const TimeSpec &time) { do_calc.switchOn(time); }
 
 // stop the module
-void FlexiStick::stopModule(const TimeSpec &time)
-{
-  do_calc.switchOff(time);
-}
+void FlexiStick::stopModule(const TimeSpec &time) { do_calc.switchOff(time); }
 
-inline bool FlexiStick::_SDL_PollEvent(SDL_Event* ev, const DataTimeSpec& ts)
+inline bool FlexiStick::_SDL_PollEvent(SDL_Event *ev, const DataTimeSpec &ts)
 {
 #ifdef FSTEST
 
   // only for injecting test inputs, cycles through all these
   // simulated events
   static SDL_JoyAxisEvent aev[] = {
-    { SDL_JOYAXISMOTION, 4, 0, 0, 0, 0, 0,   000 },
-    { SDL_JOYAXISMOTION, 5, 0, 1, 0, 0, 0,   000 },
-    { SDL_JOYAXISMOTION, 2, 0, 2, 0, 0, 0,   000 },
-    { SDL_JOYAXISMOTION, 1, 0, 0, 0, 0, 0,  2000 },
+    { SDL_JOYAXISMOTION, 4, 0, 0, 0, 0, 0, 000 },
+    { SDL_JOYAXISMOTION, 5, 0, 1, 0, 0, 0, 000 },
+    { SDL_JOYAXISMOTION, 2, 0, 2, 0, 0, 0, 000 },
+    { SDL_JOYAXISMOTION, 1, 0, 0, 0, 0, 0, 2000 },
     { SDL_JOYAXISMOTION, 2, 0, 1, 0, 0, 0, -2000 },
     { SDL_JOYAXISMOTION, 3, 0, 2, 0, 0, 0, -2000 }
   };
@@ -391,19 +387,19 @@ inline bool FlexiStick::_SDL_PollEvent(SDL_Event* ev, const DataTimeSpec& ts)
   static unsigned idx = 0;
   static unsigned tosend = 4;
 
-  switch(--tosend) {
+  switch (--tosend) {
   case 0:
     tosend = 4;
     idx++;
     return false;
   case 1:
-    ev->jaxis = aev[idx % (sizeof(aev)/sizeof(SDL_JoyAxisEvent))];
+    ev->jaxis = aev[idx % (sizeof(aev) / sizeof(SDL_JoyAxisEvent))];
     return true;
   case 2:
-    ev->jhat = hev[idx % (sizeof(hev)/sizeof(SDL_JoyHatEvent))];
+    ev->jhat = hev[idx % (sizeof(hev) / sizeof(SDL_JoyHatEvent))];
     return true;
   case 3:
-    ev->jbutton = bev[idx % (sizeof(bev)/sizeof(SDL_JoyButtonEvent))];
+    ev->jbutton = bev[idx % (sizeof(bev) / sizeof(SDL_JoyButtonEvent))];
     return true;
   default:
     assert(0);
@@ -414,7 +410,7 @@ inline bool FlexiStick::_SDL_PollEvent(SDL_Event* ev, const DataTimeSpec& ts)
 #ifdef GUI_DEVICE
   // first get events from all gui's emulating joystick buttons, hats and axes
   while (gui_current != gui_device.end()) {
-    if ( (*gui_current)->pollEvent(ev) ) {
+    if ((*gui_current)->pollEvent(ev)) {
       return true;
     }
     else {
@@ -429,10 +425,10 @@ inline bool FlexiStick::_SDL_PollEvent(SDL_Event* ev, const DataTimeSpec& ts)
 #ifdef WACOMTOUCH
 
 // from https://vgable.com/blog/2008/04/23/printing-a-fourcharcode/
-char *fourByteCodeStr(uint32_t code, char* str)
+char *fourByteCodeStr(uint32_t code, char *str)
 {
-  sprintf(str, "%c%c%c%c",
-          (code >> 24), (code>>16)&0xff, (code>>8)&0xff, code&0xff);
+  sprintf(str, "%c%c%c%c", (code >> 24), (code >> 16) & 0xff,
+          (code >> 8) & 0xff, code & 0xff);
   return str;
 }
 
@@ -444,9 +440,8 @@ static void processWacomTouchEvents(EventTimeout timeout)
 
 #ifdef KNOWEVENTTYPES
   static const unsigned ntypes = 1;
-  static EventTypeSpec evlist[ntypes] = {
-    { FOUR_CHAR_CODE("????"), FOUR_CHAR_CODE("xxxx")  }
-  };
+  static EventTypeSpec evlist[ntypes] = { { FOUR_CHAR_CODE("????"),
+                                            FOUR_CHAR_CODE("xxxx") } };
 #else
   static const unsigned ntypes = 0;
   static EventTypeSpec *evlist = NULL;
@@ -458,8 +453,7 @@ static void processWacomTouchEvents(EventTimeout timeout)
     SendEventToEventTarget(ev, target);
 #ifndef KNOWEVENTTYPES
     std::cout << "Got an event of class '"
-              << fourByteCodeStr(GetEventClass(ev), str)
-              << "' kind '"
+              << fourByteCodeStr(GetEventClass(ev), str) << "' kind '"
               << fourByteCodeStr(GetEventKind(ev), str) << "'" << std::endl;
 #endif
     ReleaseEvent(ev);
@@ -468,14 +462,28 @@ static void processWacomTouchEvents(EventTimeout timeout)
 }
 #endif
 
-
 // this routine contains the main simulation process of your module. You
 // should read the input channels here, and calculate and write the
 // appropriate output
-void FlexiStick::doCalculation(const TimeSpec& ts)
+void FlexiStick::doCalculation(const TimeSpec &ts)
 {
-  // make sure the current state is update
-  SimulationState state = getAndCheckState(ts);
+  // make sure the current state is updated
+  auto state = getAndCheckState(ts);
+  if (state == SimulationState::HoldCurrent && snap_restore.IsObject()) {
+
+    for (JValue::ConstMemberIterator it = snap_restore.MemberBegin();
+         it != snap_restore.MemberEnd(); ++it) {
+      std::string elt(it->name.GetString());
+      auto lnk = sources.find(elt);
+      if (lnk == sources.end()) {
+        W_MOD("Cannot set initial value for " << lnk->first);
+      }
+      else {
+        lnk->second->loadSnapshot(it->value);
+      }
+    }
+    snap_restore.SetNull();
+  }
   DataTimeSpec tspoint(ts.getValidityStart(), ts.getValidityStart());
 
 #ifdef GUI_DEVICE
@@ -496,34 +504,31 @@ void FlexiStick::doCalculation(const TimeSpec& ts)
         auto key = std::make_pair(uint32_t(event.jaxis.which),
                                   uint32_t(event.jaxis.axis));
         if (!uc_axes.count(key)) {
-          W_MOD("SDL joystick unconfigured device/axis " <<
-                key.first << '/' << key.second);
+          W_MOD("SDL joystick unconfigured device/axis " << key.first << '/'
+                                                         << key.second);
           uc_axes.insert(key);
         }
       }
       else {
-        dev->second->axes[event.jaxis.axis]->
-          update(float(event.jaxis.value)/float(0x8000));
+        dev->second->axes[event.jaxis.axis]->update(float(event.jaxis.value) /
+                                                    float(0x8000));
       }
-    }
-      break;
+    } break;
     case SDL_JOYHATMOTION: {
       t_devices::iterator dev = devices.find(event.jhat.which);
-      if (dev == devices.end() ||
-          dev->second->hats.size() <= event.jhat.hat) {
-        auto key = std::make_pair(uint32_t(event.jhat.which),
-                                  uint32_t(event.jhat.hat));
+      if (dev == devices.end() || dev->second->hats.size() <= event.jhat.hat) {
+        auto key =
+          std::make_pair(uint32_t(event.jhat.which), uint32_t(event.jhat.hat));
         if (!uc_hats.count(key)) {
-          W_MOD("SDL joystick unconfigured device/hat " <<
-                key.first << '/' << key.second);
+          W_MOD("SDL joystick unconfigured device/hat " << key.first << '/'
+                                                        << key.second);
           uc_hats.insert(key);
         }
       }
       else {
         dev->second->hats[event.jhat.hat]->update(event.jhat.value);
       }
-    }
-      break;
+    } break;
     case SDL_JOYBUTTONDOWN:
     case SDL_JOYBUTTONUP: {
       t_devices::iterator dev = devices.find(event.jbutton.which);
@@ -532,14 +537,14 @@ void FlexiStick::doCalculation(const TimeSpec& ts)
         auto key = std::make_pair(uint32_t(event.jbutton.which),
                                   uint32_t(event.jbutton.button));
         if (!uc_buttons.count(key)) {
-          W_MOD("SDL joystick unconfigured device/button " <<
-                key.first << '/' << key.second);
+          W_MOD("SDL joystick unconfigured device/button " << key.first << '/'
+                                                           << key.second);
           uc_buttons.insert(key);
         }
       }
       else {
-        dev->second->buttons[event.jbutton.button]->update
-          (event.jbutton.state == SDL_PRESSED);
+        dev->second->buttons[event.jbutton.button]->update(
+          event.jbutton.state == SDL_PRESSED);
       }
       break;
     }
@@ -549,14 +554,13 @@ void FlexiStick::doCalculation(const TimeSpec& ts)
       t_touchdevices::iterator dev = touches.find(event.tfinger.touchId);
       if (dev == touches.end() ||
           int(dev->second->fingers.size()) <= event.tfinger.fingerId) {
-        I_MOD("SDL touch motion unconfigured device/finger " <<
-              event.tfinger.touchId << '/' << event.tfinger.fingerId);
+        I_MOD("SDL touch motion unconfigured device/finger "
+              << event.tfinger.touchId << '/' << event.tfinger.fingerId);
       }
       else {
         dev->second->newData(event.tfinger);
       }
-    }
-      break;
+    } break;
 
     default:
       W_MOD("Unknown event of type " << hex << event.type << dec);
@@ -568,8 +572,7 @@ void FlexiStick::doCalculation(const TimeSpec& ts)
 #endif
 
   // push all the data through scalers etc to output
-  for (t_devices::iterator dev = devices.begin();
-       dev != devices.end(); dev++) {
+  for (t_devices::iterator dev = devices.begin(); dev != devices.end(); dev++) {
     dev->second->propagate();
   }
 
@@ -583,9 +586,22 @@ void FlexiStick::doCalculation(const TimeSpec& ts)
 
   // create write actions for all stream channels, and write actions
   // for all event channels with changed data
-  for (t_channelaccess::iterator acc = w_tokens.begin();
-       acc != w_tokens.end(); acc++) {
+  for (t_channelaccess::iterator acc = w_tokens.begin(); acc != w_tokens.end();
+       acc++) {
     acc->second->write(ts, state);
+  }
+
+  if (snapshotNow()) {
+    dueca::smartstring::json_string_writer writer(snap_taken);
+    writer.StartObject();
+    for (const auto lnk: sources) {
+      DEB("Snapshot check " << lnk.first << " ?state=" << lnk.second->haveState())
+      if (lnk.second->haveState()) {
+        writer.Key(lnk.first.c_str());
+        lnk.second->takeSnapshot(writer);
+      }
+    }
+    writer.EndObject();
   }
 }
 
@@ -625,23 +641,23 @@ bool FlexiStick::sdlTouchInit()
 
 #ifdef WACOMTOUCH
 
-bool FlexiStick::processDeviceInfo(const WacomMTCapability& devinfo)
+bool FlexiStick::processDeviceInfo(const WacomMTCapability &devinfo)
 {
   if (wcandidates.size() == 0) {
-    W_MOD("Additional device info received, Version=" << devinfo.Version <<
-          " DeviceID=" << devinfo.DeviceID << " Type=" <<
-          (devinfo.Type == WMTDeviceTypeOpaque ? "Opaque" : "Integrated") <<
-          " FingerMax=" << devinfo.FingerMax);
+    W_MOD("Additional device info received, Version="
+          << devinfo.Version << " DeviceID=" << devinfo.DeviceID << " Type="
+          << (devinfo.Type == WMTDeviceTypeOpaque ? "Opaque" : "Integrated")
+          << " FingerMax=" << devinfo.FingerMax);
     return false;
   }
   if (devinfo.FingerMax == 0) {
-    W_MOD("Fingerless device, Version=" << devinfo.Version <<
-          " DeviceID=" << devinfo.DeviceID);
+    W_MOD("Fingerless device, Version=" << devinfo.Version
+                                        << " DeviceID=" << devinfo.DeviceID);
     return false;
   }
   if (wdevices.find(devinfo.DeviceID) != wdevices.end()) {
-    W_MOD("Device ID already configured Version=" << devinfo.Version <<
-          " DeviceID=" << devinfo.DeviceID);
+    W_MOD("Device ID already configured Version="
+          << devinfo.Version << " DeviceID=" << devinfo.DeviceID);
     return false;
   }
 
@@ -656,14 +672,13 @@ bool FlexiStick::processDeviceInfo(const WacomMTCapability& devinfo)
   wdevices[devinfo.DeviceID] = wcandidates.front();
 
   // create a callback
-  auto f_callback =
-    +[](WacomMTFingerCollection *fingerPacket, void *self) {
-    return reinterpret_cast<WacomTouch*>(self)->newData(fingerPacket);
+  auto f_callback = +[](WacomMTFingerCollection *fingerPacket, void *self) {
+    return reinterpret_cast<WacomTouch *>(self)->newData(fingerPacket);
   };
   // register as consumer, take all data, use WacomTouch as target
-  WacomMTError res = WacomMTRegisterFingerReadCallback
-    (devinfo.DeviceID, NULL, WMTProcessingModeNone, f_callback,
-     wcandidates.front().get());
+  WacomMTError res = WacomMTRegisterFingerReadCallback(
+    devinfo.DeviceID, NULL, WMTProcessingModeNone, f_callback,
+    wcandidates.front().get());
 
   wcandidates.erase(wcandidates.begin());
   return wdevices.size() == 1;
@@ -679,9 +694,8 @@ bool FlexiStick::wacomTouchInit()
       return false;
     }
 
-    auto f_callback =
-      +[](WacomMTCapability deviceInfo, void* self) {
-      reinterpret_cast<FlexiStick*>(self)->processDeviceInfo(deviceInfo);
+    auto f_callback = +[](WacomMTCapability deviceInfo, void *self) {
+      reinterpret_cast<FlexiStick *>(self)->processDeviceInfo(deviceInfo);
     };
     res = WacomMTRegisterAttachCallback(f_callback, NULL);
     if (res != WMTErrorSuccess) {
@@ -697,7 +711,7 @@ bool FlexiStick::wacomTouchInit()
 }
 #endif
 
-bool FlexiStick::addDevice(const std::string& idev)
+bool FlexiStick::addDevice(const std::string &idev)
 {
   // argument is name:no, with no the SDL device number
   size_t idxc = idev.find(':');
@@ -705,10 +719,10 @@ bool FlexiStick::addDevice(const std::string& idev)
   std::string name;
   if (idxc != string::npos) {
     try {
-      dev = boost::lexical_cast<SDL_JoystickID>(idev.substr(idxc+1));
+      dev = boost::lexical_cast<SDL_JoystickID>(idev.substr(idxc + 1));
       name = idev.substr(0, idxc);
     }
-    catch(const boost::bad_lexical_cast& e) {
+    catch (const boost::bad_lexical_cast &e) {
       E_MOD("Cannot parse joystick number from " << idev);
       return false;
     }
@@ -718,7 +732,8 @@ bool FlexiStick::addDevice(const std::string& idev)
   }
 
   // init sdl joystick system
-  if (!sdlJoyInit()) return false;
+  if (!sdlJoyInit())
+    return false;
 
 #ifdef FSTEST
   if (dev == 0) {
@@ -736,27 +751,27 @@ bool FlexiStick::addDevice(const std::string& idev)
   }
 
   if (dev >= sdl_njoy) {
-    E_MOD("SDL joystick device " << dev << " not present, have " <<
-          sdl_njoy << " devices");
+    E_MOD("SDL joystick device " << dev << " not present, have " << sdl_njoy
+                                 << " devices");
     return false;
   }
 
   boost::intrusive_ptr<HIDStick> jdev(new JoystickDevice(dev, name));
 
-  I_MOD("SDL joystick, name " << name << " dev " << dev << " jid " << jdev->getJoystickID());
+  I_MOD("SDL joystick, name " << name << " dev " << dev << " jid "
+                              << jdev->getJoystickID());
 
   devices[jdev->getJoystickID()] = jdev;
   return true;
 }
 
-class devicenotfound: public std::exception
+class devicenotfound : public std::exception
 {
 public:
-  const char* what() const throw()
-  { return "Device name not matched"; }
+  const char *what() const throw() { return "Device name not matched"; }
 };
 
-static SDL_TouchID matchTouch(const std::string& n)
+static SDL_TouchID matchTouch(const std::string &n)
 {
 #if 0
   // not possible
@@ -770,7 +785,7 @@ static SDL_TouchID matchTouch(const std::string& n)
   throw(devicenotfound());
 }
 
-bool FlexiStick::addTouch(const std::string& idev)
+bool FlexiStick::addTouch(const std::string &idev)
 {
   // argument is name:no, with no the SDL device number
   size_t idxc = idev.find(':');
@@ -779,14 +794,14 @@ bool FlexiStick::addTouch(const std::string& idev)
   std::string name;
   if (idxc != string::npos && idxc != 0) {
     try {
-      dev = boost::lexical_cast<SDL_TouchID>(idev.substr(idxc+1));
+      dev = boost::lexical_cast<SDL_TouchID>(idev.substr(idxc + 1));
       name = idev.substr(0, idxc);
     }
-    catch(const boost::bad_lexical_cast& e) {
+    catch (const boost::bad_lexical_cast &e) {
       try {
-        dev = matchTouch(idev.substr(idxc+1));
+        dev = matchTouch(idev.substr(idxc + 1));
       }
-      catch (const std::exception& e) {
+      catch (const std::exception &e) {
         D_MOD("Cannot parse touch device from " << idev << ' ' << e.what());
         return false;
       }
@@ -797,7 +812,8 @@ bool FlexiStick::addTouch(const std::string& idev)
   }
 
   // init sdl event system
-  if (!sdlTouchInit()) return false;
+  if (!sdlTouchInit())
+    return false;
 
   t_touchdevices::const_iterator dd = touches.find(dev);
   if (dd != touches.end()) {
@@ -806,8 +822,8 @@ bool FlexiStick::addTouch(const std::string& idev)
   }
 
   if (dev >= sdl_ntouch) {
-    E_MOD("SDL touch device " << dev << " not present, have " <<
-          sdl_ntouch << " devices");
+    E_MOD("SDL touch device " << dev << " not present, have " << sdl_ntouch
+                              << " devices");
     return false;
   }
 
@@ -820,7 +836,7 @@ bool FlexiStick::addTouch(const std::string& idev)
 }
 
 #ifdef WACOMTOUCH
-bool FlexiStick::addWacom(const std::string& idev)
+bool FlexiStick::addWacom(const std::string &idev)
 {
   // match on number of fingers?
   // argument is name
@@ -830,10 +846,10 @@ bool FlexiStick::addWacom(const std::string& idev)
   std::string name;
   if (idxc != string::npos && idxc != 0) {
     try {
-      nfingers = boost::lexical_cast<unsigned>(idev.substr(idxc+1));
+      nfingers = boost::lexical_cast<unsigned>(idev.substr(idxc + 1));
       name = idev.substr(0, idxc);
     }
-    catch(const boost::bad_lexical_cast& e) {
+    catch (const boost::bad_lexical_cast &e) {
       D_MOD("Cannot parse wacom device from " << idev << ' ' << e.what());
       return false;
     }
@@ -851,7 +867,7 @@ bool FlexiStick::addWacom(const std::string& idev)
 }
 #endif
 
-bool FlexiStick::addChannel(const std::vector<std::string>& cpar)
+bool FlexiStick::addChannel(const std::vector<std::string> &cpar)
 {
   static const std::string iseventtype("event");
 
@@ -865,15 +881,15 @@ bool FlexiStick::addChannel(const std::vector<std::string>& cpar)
     E_MOD("Channel " << cpar[0] << " already configured");
   }
 
-  w_tokens[cpar[0]] = boost::intrusive_ptr<ChannelAccess>
-    (new ChannelAccess(getId(), cpar[1], cpar[2],
-                       (cpar.size() > 4 || (cpar.size() == 4 && !evtype)) ?
-                       cpar[3] : std::string(), evtype,
-                       enable_record_replay ? getEntity() : std::string()));
+  w_tokens[cpar[0]] = boost::intrusive_ptr<ChannelAccess>(new ChannelAccess(
+    getId(), cpar[1], cpar[2],
+    (cpar.size() > 4 || (cpar.size() == 4 && !evtype)) ? cpar[3]
+                                                       : std::string(),
+    evtype, enable_record_replay ? getEntity() : std::string()));
   return true;
 }
 
-bool FlexiStick::addLink(const std::vector<std::string>& lpar)
+bool FlexiStick::addLink(const std::vector<std::string> &lpar)
 {
   if (lpar.size() != 2) {
     E_MOD("Need two arguments to link");
@@ -887,13 +903,12 @@ bool FlexiStick::addLink(const std::vector<std::string>& lpar)
     return false;
   }
 
-  std::string cname = lpar[0].substr(0,didx);
-  std::string vfull = lpar[0].substr(didx+1);
+  std::string cname = lpar[0].substr(0, didx);
+  std::string vfull = lpar[0].substr(didx + 1);
 
   t_channelaccess::iterator tt = w_tokens.find(cname);
   if (tt == w_tokens.end()) {
-    E_MOD("Channel " << cname << " for link " << lpar[1] <<
-          " cannot be found");
+    E_MOD("Channel " << cname << " for link " << lpar[1] << " cannot be found");
     return false;
   }
 
@@ -904,11 +919,11 @@ bool FlexiStick::addLink(const std::vector<std::string>& lpar)
   int idxv = -1;
   if (idxlb != string::npos && idxrb != string::npos) {
     try {
-      idxv = boost::lexical_cast<int>
-        (vfull.substr(idxlb+1, idxrb-idxlb-1));
-      vname = vfull.substr(0,idxlb);
+      idxv =
+        boost::lexical_cast<int>(vfull.substr(idxlb + 1, idxrb - idxlb - 1));
+      vname = vfull.substr(0, idxlb);
     }
-    catch (const boost::bad_lexical_cast& e) {
+    catch (const boost::bad_lexical_cast &e) {
       E_MOD("Cannot read index from " << vfull);
     }
   }
@@ -917,22 +932,23 @@ bool FlexiStick::addLink(const std::vector<std::string>& lpar)
   // check that the variable/index has not been linked already
   ChannelAccess::t_writelink::iterator ll = tt->second->writelink.begin();
   while (ll != tt->second->writelink.end() &&
-         !((*ll)->mname == vname && (*ll)->idx == idxv)) ll++;
+         !((*ll)->mname == vname && (*ll)->idx == idxv))
+    ll++;
   if (ll != tt->second->writelink.end()) {
     E_MOD("Link to channel " << lpar[0] << " already in use");
     return false;
   }
 
   // create the new write link to this variable and index
-  boost::intrusive_ptr<ChannelAccess::WriteLinkBase> newlink
-    (tt->second->createWriteLink(vname, idxv));
+  boost::intrusive_ptr<ChannelAccess::WriteLinkBase> newlink(
+    tt->second->createWriteLink(vname, idxv));
   tt->second->writelink.push_back(newlink);
 
   // connect the link to the source
   return linkToSource(lpar[1], newlink, 0);
 }
 
-bool FlexiStick::linkToSource(const std::string& isource,
+bool FlexiStick::linkToSource(const std::string &isource,
                               boost::intrusive_ptr<FlexiLink> target,
                               unsigned idxt)
 {
@@ -946,21 +962,22 @@ bool FlexiStick::linkToSource(const std::string& isource,
   size_t idxc = source.find('.');
   size_t idxlb = source.find('[');
   size_t idxrb = source.find(']');
-  SDL_JoystickID jid = -1; unsigned idx = 0;
+  SDL_JoystickID jid = -1;
+  unsigned idx = 0;
   DeviceType devtype = None;
   char jtype = 'x';
   std::string jname;
 
   // analyze whether it matches joystick/touch definitions
-  if (idxc != std::string::npos &&
-      idxlb != std::string::npos && idxrb != std::string::npos) {
+  if (idxc != std::string::npos && idxlb != std::string::npos &&
+      idxrb != std::string::npos) {
 
     // search for the joystick by name
     jname = source.substr(0, idxc);
 
     if (devtype == None) {
-      for (t_devices::iterator dd = devices.begin();
-           dd != devices.end(); dd++) {
+      for (t_devices::iterator dd = devices.begin(); dd != devices.end();
+           dd++) {
         if (dd->second->getName() == jname) {
           jid = dd->first;
           devtype = JoystickDeviceType;
@@ -969,8 +986,8 @@ bool FlexiStick::linkToSource(const std::string& isource,
       }
     }
     if (devtype == None) {
-      for (t_touchdevices::iterator dd = touches.begin();
-           dd != touches.end(); dd++) {
+      for (t_touchdevices::iterator dd = touches.begin(); dd != touches.end();
+           dd++) {
         if (dd->second->getName() == jname) {
           jid = dd->first;
           devtype = HIDTouchDeviceType;
@@ -998,12 +1015,12 @@ bool FlexiStick::linkToSource(const std::string& isource,
       try {
 
         // index of device and type of measurement
-        idx = boost::lexical_cast<unsigned>
-          (source.substr(idxlb+1, idxrb-idxlb-1));
-        jtype = source[idxc+1];
+        idx = boost::lexical_cast<unsigned>(
+          source.substr(idxlb + 1, idxrb - idxlb - 1));
+        jtype = source[idxc + 1];
         PDEB("type " << jtype << " idx " << idx);
 
-        switch(devtype) {
+        switch (devtype) {
         case JoystickDeviceType: {
           PDEB("Found joystick " << jname);
 
@@ -1016,8 +1033,7 @@ bool FlexiStick::linkToSource(const std::string& isource,
             E_MOD("Cannot find joystick input " << source);
             return false;
           }
-        }
-          break;
+        } break;
 
         case HIDTouchDeviceType: {
           PDEB("Found touch " << jname);
@@ -1026,8 +1042,7 @@ bool FlexiStick::linkToSource(const std::string& isource,
             E_MOD("Cannot find touch finger " << source);
             return false;
           }
-        }
-          break;
+        } break;
 
 #ifdef WACOMTOUCH
         case WacomTouchDeviceType: {
@@ -1037,40 +1052,40 @@ bool FlexiStick::linkToSource(const std::string& isource,
             E_MOD("Cannot find touch wacom finger " << source);
             return false;
           }
-        }
-          break;
+        } break;
 #endif
 
         default:
           assert(0);
         }
       }
-      catch(const boost::bad_lexical_cast& e) {
+      catch (const boost::bad_lexical_cast &e) {
         E_MOD("Cannot parse joystick/touch definition " << source);
         return false;
       }
 
       // re-construct name, removes possible blanks in definition
       source = jname + std::string(".") + jtype + std::string("[") +
-        boost::lexical_cast<std::string>(idx) + std::string("]");
+               boost::lexical_cast<std::string>(idx) + std::string("]");
 
       // now check for presence, and add if not yet there
       if (sources.find(source) == sources.end()) {
 
         PDEB("Source '" << source << "' not yet known");
 
-        switch(devtype) {
+        switch (devtype) {
         case JoystickDeviceType: {
 
           // JIT add joystick input as a source
           if (hats.find(jtype) != string::npos) {
             std::string hname = jname + string(".h[") +
-              boost::lexical_cast<std::string>(idx) + std::string("]");
+                                boost::lexical_cast<std::string>(idx) +
+                                std::string("]");
             sources[hname] = devices[jid]->getHat(idx);
             if (jtype != 'h') {
               // create and add a hatfilter
-              boost::intrusive_ptr<FlexiLink> hatfilter
-                (new JoystickDevice::HatFilter(jtype));
+              boost::intrusive_ptr<FlexiLink> hatfilter(
+                new JoystickDevice::HatFilter(jtype));
               sources[hname]->link(hatfilter, 0);
               sources[source] = hatfilter;
             }
@@ -1081,8 +1096,7 @@ bool FlexiStick::linkToSource(const std::string& isource,
           else if (jtype == 'b') {
             sources[source] = devices[jid]->getButton(idx);
           }
-        }
-          break;
+        } break;
 
         case HIDTouchDeviceType: {
           if (jtype == 'x') {
@@ -1097,8 +1111,7 @@ bool FlexiStick::linkToSource(const std::string& isource,
           else if (jtype == 's') {
             sources[source] = touches[jid]->getFingerStatus(idx);
           }
-        }
-          break;
+        } break;
 
 #ifdef WACOMTOUCH
         case WacomTouchDeviceType: {
@@ -1133,7 +1146,7 @@ bool FlexiStick::linkToSource(const std::string& isource,
 }
 
 bool FlexiStick::addToSources(const std::string name,
-                                 boost::intrusive_ptr<FlexiLink> converter)
+                              boost::intrusive_ptr<FlexiLink> converter)
 {
   if (sources.find(name) != sources.end()) {
     E_MOD("Converter " << name << " already defined");
@@ -1147,7 +1160,7 @@ bool FlexiStick::addToSources(const std::string name,
   return true;
 }
 
-bool FlexiStick::createCounter(const std::vector<std::string>& cdef)
+bool FlexiStick::createCounter(const std::vector<std::string> &cdef)
 {
   if (cdef.size() != 2 && cdef.size() != 3 && cdef.size() != 4) {
     E_MOD("Need name for counter, and at least 1 input, two when no wrap");
@@ -1162,12 +1175,13 @@ bool FlexiStick::createCounter(const std::vector<std::string>& cdef)
   if (!linkToSource(cdef[1], newcount, 0) ||
       (cdef.size() >= 3 && !linkToSource(cdef[2], newcount, 1)) ||
       (cdef.size() == 4 && !linkToSource(cdef[3], newcount, 2)) ||
-      !addToSources(cdef[0], newcount)) return false;
+      !addToSources(cdef[0], newcount))
+    return false;
 
   return true;
 }
 
-bool FlexiStick::defineCounter(const std::vector<int>& cpar)
+bool FlexiStick::defineCounter(const std::vector<int> &cpar)
 {
   if (cpar.size() > 4 || cpar.size() < 1) {
     E_MOD("Need 1 to 4 values for counter");
@@ -1190,7 +1204,7 @@ bool FlexiStick::defineCounter(const std::vector<int>& cpar)
   return true;
 }
 
-bool FlexiStick::createWeightedSum(const std::vector<std::string>& cdef)
+bool FlexiStick::createWeightedSum(const std::vector<std::string> &cdef)
 {
   if (cdef.size() < 2) {
     E_MOD("Need at least 1 value for weighted sum");
@@ -1213,8 +1227,8 @@ bool FlexiStick::createWeightedSum(const std::vector<std::string>& cdef)
       // is there a multiplication factor?
       std::string::size_type idxm = source.find('*');
       if (idxm != std::string::npos) {
-        factor = boost::lexical_cast<float> (source.substr(0, idxm));
-        source = source.substr(idxm+1);
+        factor = boost::lexical_cast<float>(source.substr(0, idxm));
+        source = source.substr(idxm + 1);
       }
 
       // connect the source, and extend the weights array
@@ -1227,7 +1241,7 @@ bool FlexiStick::createWeightedSum(const std::vector<std::string>& cdef)
       return false;
     }
   }
-  catch(const boost::bad_lexical_cast& e) {
+  catch (const boost::bad_lexical_cast &e) {
     E_MOD("Cannot parse gain and device from " << source);
     return false;
   }
@@ -1235,7 +1249,7 @@ bool FlexiStick::createWeightedSum(const std::vector<std::string>& cdef)
   return linkfound;
 }
 
-bool FlexiStick::createPoly(const std::vector<std::string>& cdef)
+bool FlexiStick::createPoly(const std::vector<std::string> &cdef)
 {
   // 2 strings; name, input
   if (cdef.size() != 2) {
@@ -1250,8 +1264,7 @@ bool FlexiStick::createPoly(const std::vector<std::string>& cdef)
   PDEB("new poly, name " << cdef[0]);
 
   // this prints name taken or problem finding link
-  if (!linkToSource(cdef[1], newpoly, 0) ||
-      !addToSources(cdef[0], newpoly)) {
+  if (!linkToSource(cdef[1], newpoly, 0) || !addToSources(cdef[0], newpoly)) {
     E_MOD("Cannot create new poly");
     return false;
   }
@@ -1259,7 +1272,7 @@ bool FlexiStick::createPoly(const std::vector<std::string>& cdef)
   return true;
 }
 
-bool FlexiStick::definePoly(const std::vector<double>& cpar)
+bool FlexiStick::definePoly(const std::vector<double> &cpar)
 {
   if (cpar.size() < 1) {
     E_MOD("Need at least one coefficient for polynomial");
@@ -1276,7 +1289,7 @@ bool FlexiStick::definePoly(const std::vector<double>& cpar)
   return true;
 }
 
-bool FlexiStick::createSteps(const std::vector<std::string>& cdef)
+bool FlexiStick::createSteps(const std::vector<std::string> &cdef)
 {
   // 2 strings; name, input
   if (cdef.size() != 2) {
@@ -1290,8 +1303,7 @@ bool FlexiStick::createSteps(const std::vector<std::string>& cdef)
   newsteps.reset(new StepsConverter());
 
   // this prints name taken or problem finding link
-  if (!linkToSource(cdef[1], newsteps, 0) ||
-      !addToSources(cdef[0], newsteps)) {
+  if (!linkToSource(cdef[1], newsteps, 0) || !addToSources(cdef[0], newsteps)) {
     E_MOD("Cannot create new steps converter");
     return false;
   }
@@ -1299,7 +1311,7 @@ bool FlexiStick::createSteps(const std::vector<std::string>& cdef)
   return true;
 }
 
-bool FlexiStick::defineSteps(const std::vector<double>& cpar)
+bool FlexiStick::defineSteps(const std::vector<double> &cpar)
 {
   if ((cpar.size() < 2) || (cpar.size() % 2 != 0)) {
     E_MOD("Need one or more pairs for steps");
@@ -1316,7 +1328,7 @@ bool FlexiStick::defineSteps(const std::vector<double>& cpar)
   return true;
 }
 
-bool FlexiStick::createSegments(const std::vector<std::string>& cdef)
+bool FlexiStick::createSegments(const std::vector<std::string> &cdef)
 {
   // 2 strings; name, input
   if (cdef.size() != 2) {
@@ -1339,7 +1351,7 @@ bool FlexiStick::createSegments(const std::vector<std::string>& cdef)
   return true;
 }
 
-bool FlexiStick::defineSegments(const std::vector<double>& cpar)
+bool FlexiStick::defineSegments(const std::vector<double> &cpar)
 {
   if ((cpar.size() < 4) || (cpar.size() % 2 != 0)) {
     E_MOD("Need two or more pairs for segments");
@@ -1356,8 +1368,28 @@ bool FlexiStick::defineSegments(const std::vector<double>& cpar)
   return true;
 }
 
+void FlexiStick::fillSnapshot(const TimeSpec &ts, Snapshot &snap,
+                              bool from_trim)
+{
+  if (from_trim)
+    return;
+  snap.coding = Snapshot::JSONFile;
+  snap.data = snap_taken;
+  snap_taken.clear();
+}
+
+void FlexiStick::loadSnapshot(const TimeSpec& ts, const Snapshot &snap)
+{
+  if (snap.coding == Snapshot::JSON || snap.coding == Snapshot::JSONFile) {
+    rapidjson::ParseResult res = snap_restore.Parse(snap.data.c_str());
+    if (!res || !snap_restore.IsObject()) {
+      W_MOD("Could not parse JSON snapshot");
+    }
+  }
+}
+
 #ifdef GUI_DEVICE
-bool FlexiStick::addVirtual(const std::vector<std::string>& cdef)
+bool FlexiStick::addVirtual(const std::vector<std::string> &cdef)
 {
   if (cdef.size() != 1 && cdef.size() != 2) {
     E_MOD("Need one or two strings defining virtual device");
@@ -1367,7 +1399,8 @@ bool FlexiStick::addVirtual(const std::vector<std::string>& cdef)
     E_MOD("Name for virtual stick \"" << cdef[0] << "\" already taken");
     return false;
   }
-  if (!sdlJoyInit()) return false;
+  if (!sdlJoyInit())
+    return false;
 
   boost::intrusive_ptr<flexistick::GuiDevice> newdev;
   if (cdef.size() == 1) {
@@ -1376,15 +1409,14 @@ bool FlexiStick::addVirtual(const std::vector<std::string>& cdef)
   else {
     newdev.reset(new GuiDevice(cdef[0], virtual_joyid, cdef[1]));
   }
-  devices[virtual_joyid] =
-    boost::intrusive_ptr<flexistick::HIDStick>(newdev);
+  devices[virtual_joyid] = boost::intrusive_ptr<flexistick::HIDStick>(newdev);
   gui_device.push_back(newdev);
   I_MOD("New virtual stick " << cdef[0] << " no " << virtual_joyid);
   virtual_joyid--;
   return true;
 }
 
-bool FlexiStick::setVirtualPositionSize(const std::vector<int>& ps)
+bool FlexiStick::setVirtualPositionSize(const std::vector<int> &ps)
 {
   if (ps.size() != 2 && ps.size() != 4) {
     E_MOD("Need two (position only) or four (pos+size) arguments for virtual");
@@ -1398,7 +1430,7 @@ bool FlexiStick::setVirtualPositionSize(const std::vector<int>& ps)
   return true;
 }
 
-bool FlexiStick::addVirtualSlider(const std::vector<int>& cpar)
+bool FlexiStick::addVirtualSlider(const std::vector<int> &cpar)
 {
   if (cpar.size() != 5 && cpar.size() != 6 && cpar.size() != 7) {
     E_MOD("Need five to seven arguments for virtual slider");
@@ -1410,14 +1442,14 @@ bool FlexiStick::addVirtualSlider(const std::vector<int>& cpar)
   }
 
   new GuiDevice::GuiSlider(cpar[0], cpar[1], cpar[2], cpar[3], cpar[4],
-                           (cpar.size() == 7 ? 0.01*cpar[6] : 0.0),
+                           (cpar.size() == 7 ? 0.01 * cpar[6] : 0.0),
                            gui_device.back().get(),
                            (cpar.size() >= 6 && cpar[5] != 0));
 
   return true;
 }
 
-bool FlexiStick::addVirtualSlider2D(const std::vector<int>& cpar)
+bool FlexiStick::addVirtualSlider2D(const std::vector<int> &cpar)
 {
   if (cpar.size() != 5 && cpar.size() != 6 && cpar.size() != 8) {
     E_MOD("Need five, six or eight arguments for virtual 2D slider");
@@ -1429,15 +1461,15 @@ bool FlexiStick::addVirtualSlider2D(const std::vector<int>& cpar)
   }
 
   new GuiDevice::GuiSlider2D(cpar[0], cpar[1], cpar[2], cpar[3], cpar[4],
-                             (cpar.size() == 8 ? 0.01*cpar[6] : 0.0),
-                             (cpar.size() == 8 ? 0.01*cpar[7] : 0.0),
+                             (cpar.size() == 8 ? 0.01 * cpar[6] : 0.0),
+                             (cpar.size() == 8 ? 0.01 * cpar[7] : 0.0),
                              gui_device.back().get(),
                              (cpar.size() >= 6 && cpar[5] != 0));
 
   return true;
 }
 
-bool FlexiStick::addVirtualButton(const std::vector<int>& cpar)
+bool FlexiStick::addVirtualButton(const std::vector<int> &cpar)
 {
   if (cpar.size() != 3 && cpar.size() != 4) {
     E_MOD("Need three or four arguments for virtual button");
@@ -1448,14 +1480,13 @@ bool FlexiStick::addVirtualButton(const std::vector<int>& cpar)
     return false;
   }
 
-  new GuiDevice::GuiButton(cpar[0], cpar[1], cpar[2],
-                           gui_device.back().get(),
+  new GuiDevice::GuiButton(cpar[0], cpar[1], cpar[2], gui_device.back().get(),
                            (cpar.size() == 4 && cpar[3] != 0));
 
   return true;
 }
 
-bool FlexiStick::addVirtualHat(const std::vector<int>& cpar)
+bool FlexiStick::addVirtualHat(const std::vector<int> &cpar)
 {
   if (cpar.size() != 3 && cpar.size() != 4) {
     E_MOD("Need three or four arguments for virtual hat");
@@ -1466,8 +1497,7 @@ bool FlexiStick::addVirtualHat(const std::vector<int>& cpar)
     return false;
   }
 
-  new GuiDevice::GuiHat(cpar[0], cpar[1], cpar[2],
-                        gui_device.back().get(),
+  new GuiDevice::GuiHat(cpar[0], cpar[1], cpar[2], gui_device.back().get(),
                         (cpar.size() == 4 && cpar[3] != 0));
 
   return true;

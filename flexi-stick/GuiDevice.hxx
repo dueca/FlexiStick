@@ -149,7 +149,7 @@ public:
         (1) middle or left click in region
 
      when 'sticky', left click behaves as middle click
-*/
+  */
   struct GuiSlider : public GuiValueGroup
   {
 
@@ -437,13 +437,13 @@ public:
                       gpointer data);
 #endif
   /** create new hat in gui device */
-  Uint8 declareHat(boost::intrusive_ptr<GuiValueGroup> g);
+  Uint8 declareHat(boost::intrusive_ptr<GuiValueGroup> g, int value, bool sticky);
 
   /** create new axis in gui device */
-  Uint8 declareAxis(boost::intrusive_ptr<GuiValueGroup> g);
+  Uint8 declareAxis(boost::intrusive_ptr<GuiValueGroup> g, double value, bool sticky);
 
   /** create new button in gui device */
-  Uint8 declareButton(boost::intrusive_ptr<GuiValueGroup> g);
+  Uint8 declareButton(boost::intrusive_ptr<GuiValueGroup> g, bool value, bool sticky);
 };
 
 } // namespace flexistick
