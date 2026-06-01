@@ -3,6 +3,7 @@
 # specify these with the .dco extension, examples:
 # FlexiStick/comm-objects/MyDataObject.dco
 # Generic/comm-objects/PrimaryControls.dco
-FlexiStick/comm-objects/FlexiStickTest.dco
-FlexiStick/comm-objects/MediumJoystick.dco
-# FlexiStick/comm-objects/SDLEventData.dco
+#FlexiStick/comm-objects/FlexiStickTest.dco #  Removed for Policy: 'home-dco':'24-001'
+#FlexiStick/comm-objects/MediumJoystick.dco #  Removed for Policy: 'home-dco':'24-001'
+# FlexiStick/comm-objects/SDLEventData.dcocomm-objects/FlexiStickTest.dco  # Added for Policy: 'home-dco':'24-001'
+comm-objects/MediumJoystick.dco  # Added for Policy: 'home-dco':'24-001'

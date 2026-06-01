@@ -3,4 +3,5 @@
 # specify these with the .dco extension, examples:
 # FlexiStick/comm-objects/MyDataObject.dco
 # Generic/comm-objects/PrimaryControls.dco
-FlexiStick/comm-objects/FlexiStickTest.dco
+#FlexiStick/comm-objects/FlexiStickTest.dco #  Removed for Policy: 'home-dco':'24-001'
+comm-objects/FlexiStickTest.dco  # Added for Policy: 'home-dco':'24-001'

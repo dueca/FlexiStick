@@ -41,6 +41,7 @@
 // the standard package for DUSIME, including template source
 #define DO_INSTANTIATE
 #include <dusime.h>
+using namespace std;
 
 #ifdef WACOMTOUCH
 #include <Carbon/Carbon.h>

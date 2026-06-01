@@ -1,3 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <policies xmlns="https://dueca.tudelft.nl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dueca.tudelft.nl policylist.xsd">
+  <policy date="2026-06-01 12:47" id="24-001">
+    <file>/home/repa/gdapps/FlexiStick/FlexiStick/flexi-stick/comm-objects.lst</file>
+    <file>/home/repa/gdapps/FlexiStick/FlexiStick/stick-view/comm-objects.lst</file>
+  </policy>
+  <policy date="2026-06-01 12:48" id="26-001">
+    <file>flexi-stick/FlexiStick.hxx</file>
+    <file>stick-view/StickView.hxx</file>
+  </policy>
+  <policy date="2026-06-01 12:48" id="26-002">
+    <file>flexi-stick/ChannelAccess.hxx</file>
+    <file>flexi-stick/FlexiStick.hxx</file>
+    <file>stick-view/StickView.hxx</file>
+  </policy>
+  <policy date="2026-06-01 12:48" id="26-003">
+    <file>flexi-stick/FlexiStick.cxx</file>
+    <file>stick-view/StickView.cxx</file>
+  </policy>
 </policies>

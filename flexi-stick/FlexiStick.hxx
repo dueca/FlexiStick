@@ -101,7 +101,7 @@ USING_DUECA_NS;
 
     \verbinclude flexi-stick-example.mod
 */
-class FlexiStick: public SimulationModule
+class FlexiStick: public dueca::SimulationModule
 {
   /** self-define the module type, to ease writing the parameter table */
   typedef FlexiStick _ThisModule_;
@@ -245,34 +245,34 @@ private:
   /** Record event data for replay */
   bool                 enable_record_replay;
 
-  /** Snapshot space */
+  /** dueca::Snapshot space */
   rapidjson::GenericDocument<rapidjson::UTF8<>>  snap_restore;
 
-  /** Snapshot to take */
+  /** dueca::Snapshot to take */
   dueca::smartstring   snap_taken;
 #endif
 
 private: // activity allocation
   /** You might also need a clock. Don't mis-use this, because it is
       generally better to trigger on the incoming channels */
-  PeriodicAlarm        myclock;
+  dueca::PeriodicAlarm        myclock;
 
-  /** Callback object for simulation calculation. */
-  Callback<FlexiStick>  cb1;
+  /** dueca::Callback object for simulation calculation. */
+  dueca::Callback<FlexiStick>  cb1;
 
   /** Activity for simulation calculation. */
-  ActivityCallback      do_calc;
+  dueca::ActivityCallback      do_calc;
 
 public: // class name and trim/parameter tables
   /** Name of the module. */
   static const char* const           classname;
 
   /** Return the parameter table. */
-  static const ParameterTable*       getMyParameterTable();
+  static const dueca::ParameterTable*       getMyParameterTable();
 
 public: // construction and further specification
   /** Constructor. Is normally called from scheme/the creation script. */
-  FlexiStick(Entity* e, const char* part, const PrioritySpec& ts);
+  FlexiStick(dueca::Entity* e, const char* part, const dueca::PrioritySpec& ts);
 
   /** Continued construction. This is called after all script
       parameters have been read and filled in, according to the
@@ -292,30 +292,30 @@ public: // construction and further specification
   // Delete if not needed!
 
   /** Specify a time specification for the simulation activity. */
-  bool setTimeSpec(const TimeSpec& ts);
+  bool setTimeSpec(const dueca::TimeSpec& ts);
 
   /** Request check on the timing. */
-  bool checkTiming(const vector<int>& i);
+  bool checkTiming(const std::vector<int>& i);
 
 public: // member functions for cooperation with DUECA
   /** indicate that everything is ready. */
   bool isPrepared();
 
   /** start responsiveness to input data. */
-  void startModule(const TimeSpec &time);
+  void startModule(const dueca::TimeSpec &time);
 
   /** stop responsiveness to input data. */
-  void stopModule(const TimeSpec &time);
+  void stopModule(const dueca::TimeSpec &time);
 
 public: // the member functions that are called for activities
   /** the method that implements the main calculation. */
-  void doCalculation(const TimeSpec& ts);
+  void doCalculation(const dueca::TimeSpec& ts);
 
-  /** Snapshot sending */
-  void fillSnapshot(const TimeSpec &ts, Snapshot &snap, bool from_trim);
+  /** dueca::Snapshot sending */
+  void fillSnapshot(const dueca::TimeSpec &ts, dueca::Snapshot &snap, bool from_trim);
 
-  /** Snapshot restore */
-  void loadSnapshot(const TimeSpec& ts, const Snapshot& snap);
+  /** dueca::Snapshot restore */
+  void loadSnapshot(const dueca::TimeSpec& ts, const dueca::Snapshot& snap);
 
 private:
   /** Read sdl event */

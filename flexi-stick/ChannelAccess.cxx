@@ -17,7 +17,7 @@
 static const char* classname = "flexistick::ChannelAccess";
 
 namespace dueca {
-  template<> const char* dueca::getclassname<flexistick::ChannelAccess>()
+  template<> const char* getclassname<flexistick::ChannelAccess>()
   { return classname; }
   template<>
   const char* getclassname<const flexistick::ChannelAccess>()
@@ -25,30 +25,31 @@ namespace dueca {
   template<>
   const char* getclassname(const  flexistick::ChannelAccess&)
   { return classname; }
-  
+
 }
+
 
 namespace flexistick {
 
 
 
 
-  ChannelAccess::ChannelAccess(const GlobalId& master,
+  ChannelAccess::ChannelAccess(const dueca::GlobalId& master,
                                const std::string& nameset,
                                const std::string& dclass,
                                const std::string& label,
                                bool eventtype,
                                const std::string& entity) :
     intrusive_refcount(0),
-    token(master, NameSet(nameset), dclass, label,
-          eventtype ? Channel::Events : Channel::Continuous,
-          Channel::OneOrMoreEntries),
+    token(master, dueca::NameSet(nameset), dclass, label,
+          eventtype ? dueca::Channel::Events : dueca::Channel::Continuous,
+          dueca::Channel::OneOrMoreEntries),
     dclass(dclass),
     streamtype(!eventtype),
     changed(true),
     master_id(master)
 #if defined(DataRecorder_hxx)
-    ,recorder(entity.size() ? new DataRecorder() : NULL)
+    ,recorder(entity.size() ? new dueca::DataRecorder() : NULL)
 #endif
   {
 #if defined(DataRecorder_hxx)
@@ -86,12 +87,12 @@ namespace flexistick {
   ChannelAccess::createWriteLink(const std::string& vname, int idx)
   {
     // find the entry based on data class name
-    DataClassRegistry_entry_type re =
-      DataClassRegistry::single().getEntry(dclass);
+    dueca::DataClassRegistry_entry_type re =
+      dueca::DataClassRegistry::single().getEntry(dclass);
 
     // accessor to this member
-    CommObjectMemberAccessBasePtr acc =
-      DataClassRegistry::single().getMemberAccessor(re, vname);
+    dueca::CommObjectMemberAccessBasePtr acc =
+      dueca::DataClassRegistry::single().getMemberAccessor(re, vname);
 
     // see if we have a matching class
     if (strcmp(acc->getClassname(), "double") == 0) {
@@ -127,20 +128,20 @@ namespace flexistick {
     return NULL;
   }
 
-  bool ChannelAccess::write(const TimeSpec& ts, SimulationState mode)
+  bool ChannelAccess::write(const dueca::TimeSpec& ts, dueca::SimulationState mode)
   {
 #if defined(DataRecorder_hxx)
-    if (recorder && mode == SimulationState::Replay) {
+    if (recorder && mode == dueca::SimulationState::Replay) {
       return recorder->channelReplay(ts, token) > 0;
     }
 #endif
 
     if (changed || streamtype) {
-      DataTimeSpec dts
+      dueca::DataTimeSpec dts
         (ts.getValidityStart(),
          streamtype ? ts.getValidityEnd() : ts.getValidityStart());
 
-      DCOWriter w(dclass.c_str(), token, ts);
+      dueca::DCOWriter w(dclass.c_str(), token, ts);
       PDEB("Channel write " << dclass);
       for (t_writelink::iterator wl = writelink.begin();
            wl != writelink.end(); wl++) {
@@ -149,7 +150,7 @@ namespace flexistick {
       changed = false;
 
 #if defined(DataRecorder_hxx)
-      if (recorder && mode == SimulationState::Advance) {
+      if (recorder && mode == dueca::SimulationState::Advance) {
         recorder->channelRecord(dts, w);
       }
 #endif
