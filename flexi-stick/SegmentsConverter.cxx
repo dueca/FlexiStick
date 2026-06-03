@@ -19,7 +19,7 @@
 #define PDEB(A)
 #endif
 
-DUECA_NS_START
+namespace dueca {
 
 class segments_exception: public std::exception
 {
@@ -129,7 +129,7 @@ std::ostream& Segments::print(std::ostream& os) const
   return os << ")";
 }
 
-DUECA_NS_END
+} // namespace dueca
 
 namespace flexistick {
   static double dum[] = {0.0, 1.0};

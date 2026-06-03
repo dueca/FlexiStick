@@ -32,7 +32,7 @@ namespace flexistick {
     unsigned intrusive_refcount;
 
     /** Write access token */
-    ChannelWriteToken token;
+    dueca::ChannelWriteToken token;
 
     /** Data class name */
     std::string dclass;
@@ -44,14 +44,14 @@ namespace flexistick {
     bool changed;
 
     /** Master's id */
-    const GlobalId& master_id;
+    const dueca::GlobalId& master_id;
 
     /** Call to get it */
-    inline const GlobalId& getId() const { return master_id; }
+    inline const dueca::GlobalId& getId() const { return master_id; }
 
 #if defined(DataRecorder_hxx)
     /** Data recorder/replayer, if so configured */
-    boost::scoped_ptr<DataRecorder> recorder;
+    boost::scoped_ptr<dueca::DataRecorder> recorder;
 #endif
 
     /** Define a link between data and members of the written object */
@@ -65,7 +65,7 @@ namespace flexistick {
       /** constructor */
       WriteLinkBase(ChannelAccess* p, const std::string& vname, int idx);
       /** write the data */
-      virtual void write(DCOWriter& w) = 0;
+      virtual void write(dueca::DCOWriter& w) = 0;
       /** Destructor */
       virtual ~WriteLinkBase() {};
     };
@@ -82,7 +82,7 @@ namespace flexistick {
       WriteLink(ChannelAccess* p, const std::string& vname, int idx);
 
       /** write the data */
-      void write(DCOWriter& w) {
+      void write(dueca::DCOWriter& w) {
         boost::any v = value;
         if (idx >= 0) {
           w[mname.c_str()].write(v, idx);
@@ -118,13 +118,13 @@ namespace flexistick {
     t_writelink writelink;
 
     /** Constructor. */
-    ChannelAccess(const GlobalId& master,
+    ChannelAccess(const dueca::GlobalId& master,
                   const std::string& nameset, const std::string& dclass,
                   const std::string& label, bool eventtype,
                   const std::string& entity=std::string());
 
     /** Write the data */
-    bool write(const TimeSpec& ts, SimulationState mode);
+    bool write(const dueca::TimeSpec& ts, dueca::SimulationState mode);
 
     /** Check token */
     bool isPrepared();

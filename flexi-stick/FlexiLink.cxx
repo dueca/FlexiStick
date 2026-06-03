@@ -29,7 +29,7 @@ namespace flexistick {
 
   void FlexiLink::link(boost::intrusive_ptr<FlexiLink> target, unsigned idxt)
   {
-    receivers.push_back(make_pair(idxt, target));
+    receivers.push_back(std::make_pair(idxt, target));
   }
 
   void FlexiLink::propagate(bool& v, unsigned idx)

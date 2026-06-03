@@ -32,6 +32,7 @@
 // the standard package for DUSIME, including template source
 #define DO_INSTANTIATE
 #include <dueca.h>
+using namespace std;
 
 #if defined(DUECA_CONFIG_GTK3) || defined(DUECA_CONFIG_GTK4)
 
