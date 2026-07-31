@@ -17,4 +17,7 @@
     <file>flexi-stick/FlexiStick.cxx</file>
     <file>stick-view/StickView.cxx</file>
   </policy>
+  <policy date="2026-06-15 13:00" id="26-008">
+    <file>CMakeLists.txt</file>
+  </policy>
 </policies>

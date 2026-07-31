@@ -85,3 +85,7 @@ SDLEventData::SDLEventData(const SDL_Event& ev) :
     return;
   }
 }
+
+namespace dueca {
+  template<> const char* getclassname<Dstring<40>>() { return "string40"; }
+}
