@@ -172,10 +172,17 @@ void GuiDevice::updatesize(GtkWidget *widget, GtkAllocation *allocation,
 #if GTK_CHECK_VERSION(4, 0, 0)
 void GuiDevice::draw(GtkDrawingArea *w, cairo_t *cr, int width, int height)
 {
-  GdkRGBA color;
-  gtk_widget_get_color(GTK_WIDGET(w), &color);
-  gdk_cairo_set_source_rgba(cr, &color);
+  // transparent background
+  GdkRGBA bgcolor = {0, 0, 0, 0};
+  GdkRGBA black = {0, 0, 0, 1};
+
+  // need the rectangle to fill background
+  gdk_cairo_set_source_rgba(cr, &bgcolor);
+  cairo_rectangle(cr, 0, 0, width, height);
   cairo_fill(cr);
+
+  // set for drawing the buttons and sliders
+  gdk_cairo_set_source_rgba(cr, &black);
 
   for (gvalue_list_t::iterator gg = gvalue.begin(); gg != gvalue.end(); gg++) {
     (*gg)->draw(cr, width, height);
