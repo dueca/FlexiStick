@@ -37,7 +37,12 @@ void SDLEventData::getEvent(SDL_Event& ev)
     ::unPackData(s, ev.tfinger.dx);       // float
     ::unPackData(s, ev.tfinger.dy);       // float
     ::unPackData(s, ev.tfinger.pressure); // float
+#if SDL_VERSION_ATLEAST(2,0,12)
     ::unPackData(s, ev.tfinger.windowID); // uint32
+#else
+    Uint32 windowID_dummy=0;
+    ::unPackData(s, windowID_dummy); // uint32
+#endif
     return;
   }
 }
@@ -81,7 +86,12 @@ SDLEventData::SDLEventData(const SDL_Event& ev) :
     ::packData(s, ev.tfinger.dx);
     ::packData(s, ev.tfinger.dy);
     ::packData(s, ev.tfinger.pressure);
+#if SDL_VERSION_ATLEAST(2,0,12)
     ::packData(s, ev.tfinger.windowID);
+#else
+    Uint32 windowID_dummy=0;
+    ::packData(s, windowID_dummy);
+#endif
     return;
   }
 }
