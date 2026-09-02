@@ -15,7 +15,7 @@ SDLEventData(const SDL_Event& ev);
 #include <dueca/msgpack.hxx>
 #include <dueca/msgpack-unstream-iter.hxx>
 
-#if DUECA_CONFIG_MSGPACK == 1
+#if DUECA_MSGPACK_CODEGEN_VERSION == 1
 #define __CUSTOM_COMPATLEVEL_MSGPACK_1
 
 namespace msgpack {
@@ -64,7 +64,7 @@ void msg_unpack(S& i0, const S& iend, SDLEventData&i)
 };
 } // namespace msgunpack
 
-#else
+#elif DUECA_MSGPACK_CODEGEN_VERSION == 2
 #define __CUSTOM_COMPATLEVEL_MSGPACK_2
 
 /** This ensures that this DCO objects are marked as such when trying
